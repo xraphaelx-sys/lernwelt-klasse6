@@ -44,5 +44,119 @@ Geografie: {
   ]
 }
   };
+let subject = "";
+let topic = "";
+let questions = [];
+let index = 0;
+let score = 0;
+let right = 0;
+let wrong = 0;
+
+const el = id => document.getElementById(id);
+
+function updateStats() {
+  el("p").textContent = score;
+  el("r").textContent = right;
+  el("w").textContent = wrong;
+}
+
+function showSubjects() {
+  el("subjects").innerHTML = "";
+  Object.keys(bank).forEach(name => {
+    const b = document.createElement("button");
+    b.textContent = name;
+    b.onclick = () => {
+      subject = name;
+      el("subjects").querySelectorAll("button").forEach(x => x.classList.remove("sel"));
+      b.classList.add("sel");
+      showTopics();
+    };
+    el("subjects").appendChild(b);
+  });
+}
+
+function showTopics() {
+  el("topics").innerHTML = "";
+  el("hint").textContent = "Wähle ein Thema für " + subject + ".";
+  Object.keys(bank[subject]).forEach(name => {
+    const b = document.createElement("button");
+    b.textContent = name;
+    b.onclick = () => {
+      topic = name;
+      el("topics").querySelectorAll("button").forEach(x => x.classList.remove("sel"));
+      b.classList.add("sel");
+      start();
+    };
+    el("topics").appendChild(b);
+  });
+}
+
+function start() {
+  questions = bank[subject][topic];
+  index = 0;
+  el("selected").textContent = subject + " – " + topic;
+  el("again").classList.add("hide");
+  showQuestion();
+}
+
+function showQuestion() {
+  el("feedback").innerHTML = "";
+  el("next").classList.add("hide");
+  const q = questions[index];
+  el("progress").textContent = "Aufgabe " + (index + 1) + " von " + questions.length;
+  el("q").textContent = q[0];
+  el("answers").innerHTML = "";
+
+  q[1].forEach((answer, i) => {
+    const b = document.createElement("button");
+    b.textContent = String.fromCharCode(65 + i) + ") " + answer;
+    b.onclick = () => checkAnswer(i);
+    el("answers").appendChild(b);
+  });
+}
+
+function checkAnswer(choice) {
+  const q = questions[index];
+  const buttons = el("answers").querySelectorAll("button");
+  buttons.forEach(b => b.disabled = true);
+
+  if (choice === q[2]) {
+    score += 10;
+    right++;
+    el("feedback").innerHTML =
+      '<div class="good"><b>✅ Richtig! +10 Punkte</b><p>' + q[3] + '</p></div>';
+  } else {
+    wrong++;
+    el("feedback").innerHTML =
+      '<div class="bad"><b>❌ Leider falsch!</b><p>Richtig ist: ' +
+      q[1][q[2]] + '</p><p>' + q[3] + '</p></div>';
+  }
+
+  updateStats();
+  el("next").classList.remove("hide");
+  el("next").textContent =
+    index === questions.length - 1 ? "Ergebnis anzeigen" : "Nächste Aufgabe ➜";
+}
+
+el("next").onclick = () => {
+  index++;
+  if (index < questions.length) {
+    showQuestion();
+  } else {
+    el("q").textContent = "🎉 Fertig! Du hast " + right + " Aufgaben richtig.";
+    el("progress").textContent = "Deine Punkte: " + score;
+    el("answers").innerHTML = "";
+    el("feedback").innerHTML = "";
+    el("next").classList.add("hide");
+    el("again").classList.remove("hide");
+  }
+};
+
+el("again").onclick = start;
+
+showSubjects();
+updateStats();
+
+
 
 
