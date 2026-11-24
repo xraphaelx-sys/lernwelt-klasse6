@@ -21,26 +21,27 @@ Biologie:{"Tiere":[["Welches Tier ist ein Säugetier?",["Frosch","Delfin","Forel
 "Pflanzen":[["Was brauchen Pflanzen zur Fotosynthese?",["Licht, Wasser und CO₂","Nur Erde","Nur Sauerstoff"],0,"Pflanzen brauchen Licht, Wasser und Kohlenstoffdioxid für die Fotosynthese."],["Welcher Teil nimmt Wasser auf?",["Blüte","Wurzel","Frucht"],1,"Die Wurzeln nehmen Wasser und Mineralstoffe aus dem Boden auf."]]},
 Geschichte:{"Altes Ägypten":[["An welchem Fluss lag das alte Ägypten?",["Nil","Rhein","Donau"],0,"Das alte Ägypten entstand am Nil."],["Wie hieß die Schrift der Ägypter?",["Runen","Hieroglyphen","Latein"],1,"Die Bildzeichen der alten Ägypter nennt man Hieroglyphen."]],
 "Mittelalter":[["Wozu dienten Burgen?",["Schutz und Wohnsitz","Flughafen","Fabrik"],0,"Burgen waren Wohnsitze und konnten zur Verteidigung dienen."],["Wie nennt man einen Kämpfer zu Pferd?",["Ritter","Pharao","Händler"],0,"Ritter waren bewaffnete Kämpfer, häufig zu Pferd."]]},
-Geografie:"Europa – Länder und Hauptstädte":[
-["Was ist die Hauptstadt von Spanien?",["Rom","Madrid","Paris"],1,"Madrid ist die Hauptstadt von Spanien."],
-["Was ist die Hauptstadt von Österreich?",["Wien","Bern","Berlin"],0,"Wien ist die Hauptstadt von Österreich."]
-],
-"Europas Gebirge und Flüsse":[
-["Wie heißt das große Gebirge in Mitteleuropa?",["Alpen","Harz","Schwarzwald"],0,"Die Alpen liegen in Mitteleuropa."],
-["Welcher Fluss fließt durch Budapest?",["Rhein","Donau","Seine"],1,"Die Donau fließt durch Budapest."]
-],
-"Die Europäische Union":[
-["Wie wird die Europäische Union abgekürzt?",["EU","UNO","NATO"],0,"EU steht für Europäische Union."],
-["Welche Währung nutzen viele EU-Länder?",["Dollar","Euro","Yen"],1,"Viele EU-Länder nutzen den Euro."]
-]{"Kontinente & Länder":[["Auf welchem Kontinent liegt Deutschland?",["Asien","Europa","Afrika"],1,"Deutschland liegt in Mitteleuropa."],["Was ist die Hauptstadt von Frankreich?",["Paris","Rom","Madrid"],0,"Die Hauptstadt Frankreichs heißt Paris."]],
-"Karten & Orientierung":[["Gegenüber von Norden liegt…",["Osten","Süden","Westen"],1,"Süden liegt genau gegenüber von Norden."],["Was zeigt der Kartenmaßstab?",["Verkleinerungsverhältnis","Wetter","Bevölkerungsalter"],0,"Der Maßstab zeigt, wie Entfernungen auf der Karte verkleinert sind."]]}
-};
-let subject="",topic="",qs=[],n=0,score=0,right=0,wrong=0,locked=false;
-const el=id=>document.getElementById(id),subjects=Object.keys(bank);
-el("subjects").innerHTML=subjects.map(s=>`<button data-s="${s}">${({Mathe:"➗",Deutsch:"📖",Englisch:"🇬🇧",Biologie:"🧬",Geschichte:"🏛️",Geografie:"🌍"})[s]} ${s}</button>`).join("");
-document.querySelectorAll("[data-s]").forEach(b=>b.onclick=()=>{subject=b.dataset.s;topic="";document.querySelectorAll("[data-s]").forEach(x=>x.classList.toggle("sel",x===b));el("hint").textContent="Wähle ein Thema aus "+subject+":";el("topics").innerHTML=Object.keys(bank[subject]).map(t=>`<button data-t="${t}">${t}</button>`).join("");document.querySelectorAll("[data-t]").forEach(x=>x.onclick=()=>start(x.dataset.t));});
-function start(t){topic=t;qs=[...bank[subject][topic]].sort(()=>Math.random()-.5);n=0;el("selected").textContent=subject+" · "+topic;document.querySelectorAll("[data-t]").forEach(x=>x.classList.toggle("sel",x.dataset.t===t));show();}
-function show(){locked=false;el("feedback").innerHTML="";el("answers").innerHTML="";el("next").classList.add("hide");el("again").classList.add("hide");if(n>=qs.length){el("q").textContent=`🏆 Fertig! Richtig: ${right}, falsch: ${wrong}.`;el("again").classList.remove("hide");return;}let q=qs[n];el("progress").textContent=`Aufgabe ${n+1} von ${qs.length}`;el("q").textContent=q[0];q[1].forEach((a,i)=>{let b=document.createElement("button");b.textContent=""+String.fromCharCode(65+i)+". "+a;b.onclick=()=>answer(i);el("answers").appendChild(b);});}
-function answer(i){if(locked)return;locked=true;let q=qs[n],ok=i===q[2];if(ok){score+=10;right++;el("feedback").innerHTML=`<div class="good"><b>🎉 Richtig! +10 Punkte</b><p>${q[3]}</p></div>`;}else{wrong++;el("feedback").innerHTML=`<div class="bad"><b>❌ Leider falsch. Richtig ist: ${q[1][q[2]]}</b><p><b>So geht es richtig:</b> ${q[3]}</p></div>`;}el("p").textContent=score;el("r").textContent=right;el("w").textContent=wrong;[...el("answers").children].forEach((b,k)=>{b.disabled=true;if(k===q[2])b.style.borderColor="green";if(k===i&&!ok)b.style.borderColor="red";});el("next").classList.remove("hide");}
-el("next").onclick=()=>{n++;show()};el("again").onclick=()=>start(topic);
-</script></html>
+
+Geografie: {
+  "Europa – Länder und Hauptstädte": [
+    ["Was ist die Hauptstadt von Spanien?", ["Rom", "Madrid", "Paris"], 1, "Madrid ist die Hauptstadt von Spanien."],
+    ["Was ist die Hauptstadt von Österreich?", ["Wien", "Bern", "Berlin"], 0, "Wien ist die Hauptstadt von Österreich."]
+  ],
+  "Europas Gebirge und Flüsse": [
+    ["Wie heißt das große Gebirge in Mitteleuropa?", ["Alpen", "Harz", "Schwarzwald"], 0, "Die Alpen liegen in Mitteleuropa."],
+    ["Welcher Fluss fließt durch Budapest?", ["Rhein", "Donau", "Seine"], 1, "Die Donau fließt durch Budapest."]
+  ],
+  "Die Europäische Union": [
+    ["Wie wird die Europäische Union abgekürzt?", ["EU", "UNO", "NATO"], 0, "EU steht für Europäische Union."],
+    ["Welche Währung nutzen viele EU-Länder?", ["Dollar", "Euro", "Yen"], 1, "Viele EU-Länder nutzen den Euro."]
+  ],
+  "Kontinente und Länder": [
+    ["Auf welchem Kontinent liegt Deutschland?", ["Asien", "Europa", "Afrika"], 1, "Deutschland liegt in Mitteleuropa."]
+  ],
+  "Karten und Orientierung": [
+    ["Gegenüber von Norden liegt...", ["Osten", "Süden", "Westen"], 1, "Süden liegt gegenüber von Norden."],
+    ["Was zeigt der Kartenmaßstab?", ["Verkleinerungsverhältnis", "Wetter", "Bevölkerungsalter"], 0, "Der Maßstab zeigt, wie Entfernungen verkleinert dargestellt werden."]
+  ]
+}
+
+
