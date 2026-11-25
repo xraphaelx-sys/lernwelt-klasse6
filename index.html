@@ -1,166 +1,352 @@
-<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Lernwelt Klasse 6</title>
+
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lernwelt Klasse 6</title>
 <style>
-body{font:16px system-ui;margin:0;background:#f2f5fb;color:#17233b}main{max-width:850px;margin:auto;padding:20px}.hero{background:linear-gradient(120deg,#245a9b,#6043a5);color:white;padding:22px;border-radius:18px}.card{background:white;border:1px solid #dce3ef;border-radius:15px;padding:16px;margin:15px 0}button{padding:11px;border:1px solid #ccd5e5;border-radius:10px;background:white;cursor:pointer;color:#17233b}button:hover,.sel{border:2px solid #5368d9;background:#eef0ff}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:9px}.answers{display:grid;gap:8px}.primary{background:#5368d9;color:white;width:100%;margin-top:12px}.good,.bad{padding:12px;border-radius:10px;margin-top:12px}.good{background:#e7f8ed}.bad{background:#fff0ef}.hide{display:none}.muted{color:#63718a}.stats{display:flex;gap:20px;flex-wrap:wrap}
-</style><main><header class="hero"><h1>🎓 Lernwelt – Klasse 6</h1><div>Dein Lernplatz für Klassenarbeiten und Tests</div><p class="stats">⭐ Punkte: <b id="p">0</b>　✅ Richtig: <b id="r">0</b>　📚 Falsch: <b id="w">0</b></p></header>
-<section class="card"><h2>1. Fach auswählen</h2><div class="grid" id="subjects"></div></section>
-<section class="card"><h2>2. Thema auswählen</h2><p class="muted" id="hint">Wähle zuerst ein Fach.</p><div class="grid" id="topics"></div></section>
-<section class="card"><h2>3. Aufgaben üben</h2><p id="selected" class="muted">Noch kein Thema ausgewählt</p><p id="progress"></p><h3 id="q">Wähle ein Fach und ein Thema!</h3><div class="answers" id="answers"></div><div id="feedback"></div><button class="primary hide" id="next">Nächste Aufgabe ➜</button><button class="hide" id="again">Thema neu starten</button></section></main>
+*{box-sizing:border-box}
+body{font:16px system-ui;margin:0;background:#f1f5fb;color:#17233b}
+main{max-width:950px;margin:auto;padding:18px}
+.hero{background:linear-gradient(120deg,#245a9b,#6043a5);color:white;padding:25px;border-radius:18px}
+.card{background:white;border:1px solid #dce3ef;border-radius:15px;padding:17px;margin:15px 0}
+button,select{padding:12px;border:1px solid #ccd5e5;border-radius:10px;background:white;cursor:pointer;color:#17233b;font-size:15px}
+button:hover,.sel{border:2px solid #5368d9;background:#eef0ff}
+button:disabled{opacity:.6;cursor:default}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
+.answers{display:grid;gap:9px}
+.primary{background:#5368d9;color:white;width:100%;margin-top:12px}
+.good,.bad{padding:13px;border-radius:10px;margin-top:12px}
+.good{background:#e7f8ed}
+.bad{background:#fff0ef}
+.hide{display:none}
+.muted{color:#63718a}
+.stats{display:flex;gap:18px;flex-wrap:wrap}
+</style>
+</head>
+<body>
+<main>
+<header class="hero">
+<h1>🎓 Lernwelt – Klasse 6</h1>
+<div>Dein Lernplatz für Klassenarbeiten und Tests!</div>
+<p class="stats">
+⭐ Punkte: <b id="p">0</b>
+✅ Richtig: <b id="r">0</b>
+📚 Falsch: <b id="w">0</b>
+</p>
+</header>
+
+<section class="card">
+<h2>1. Fach auswählen</h2>
+<div class="grid" id="subjects"></div>
+</section>
+
+<section class="card">
+<h2>2. Thema auswählen</h2>
+<p class="muted" id="hint">Wähle zuerst ein Fach.</p>
+<div class="grid" id="topics"></div>
+</section>
+
+<section class="card">
+<h2>3. Aufgaben üben</h2>
+<p id="selected" class="muted">Noch kein Thema ausgewählt</p>
+<p id="progress"></p>
+<h3 id="q">Wähle ein Fach und ein Thema!</h3>
+<div class="answers" id="answers"></div>
+<div id="feedback"></div>
+<button class="primary hide" id="next">Nächste Aufgabe ➜</button>
+<button class="hide" id="again">Thema neu starten</button>
+</section>
+</main>
+
 <script>
-const bank={
-Mathe:{"Brüche":[["Was ist 1/2 von 18?",["6","9","12"],1,"Die Hälfte bedeutet durch 2 teilen: 18 : 2 = 9."],["1/4 + 2/4 = ?",["2/4","3/4","3/8"],1,"Bei gleichem Nenner addierst du die Zähler: 1 + 2 = 3. Der Nenner bleibt 4."]],
-"Dezimalzahlen":[["2,5 + 1,3 = ?",["3,8","3,7","4,8"],0,"Komma unter Komma schreiben: 2,5 + 1,3 = 3,8."],["4,2 × 10 = ?",["4,2","42","420"],1,"Beim Multiplizieren mit 10 rückt das Komma eine Stelle nach rechts."]],
-"Multiplikation & Division":[["24 × 6 = ?",["124","144","164"],1,"20 × 6 = 120 und 4 × 6 = 24. Zusammen 144."],["168 : 7 = ?",["21","24","28"],1,"7 × 24 = 168. Deshalb ist 168 : 7 = 24."]],
-"Geometrie":[["Wie viele rechte Winkel hat ein Rechteck?",["2","4","6"],1,"Alle vier Ecken eines Rechtecks sind rechte Winkel."],["Umfang eines Quadrats?",["Seite × 4","Seite × Seite","Seite + 2"],0,"Ein Quadrat hat vier gleich lange Seiten. Umfang = 4 × Seitenlänge."]]},
-Deutsch:{"Grammatik":[["Welches Wort ist ein Verb?",["laufen","blau","Tisch"],0,"„Laufen“ ist ein Verb. Verben beschreiben Tätigkeiten."],["Welches Wort ist ein Nomen?",["schnell","Katze","springen"],1,"„Katze“ ist ein Nomen und wird großgeschrieben."]],
-"Rechtschreibung":[["Welche Schreibweise ist richtig?",["Fahrrad","Farad","Farrad"],0,"Richtig ist „Fahrrad“ mit h und doppeltem r."],["Wie schreibt man das Nomen?",["das lesen","das Lesen","das LEsen"],1,"Wenn ein Verb als Nomen verwendet wird, schreibt man es groß: das Lesen."]],
-"Satzbau":[["Prädikat in „Mia liest ein Buch“?",["Mia","liest","ein Buch"],1,"Das Prädikat sagt, was jemand tut: Mia liest."],["Satzzeichen am Ende einer Frage?",[".","?","!"],1,"Eine direkte Frage endet mit einem Fragezeichen."]]},
-Englisch:{"Vokabeln":[["Was bedeutet apple?",["Birne","Apfel","Kirsche"],1,"Apple bedeutet Apfel."],["Was bedeutet school?",["Schule","Haus","Freund"],0,"School bedeutet Schule."]],
-"Grammatik":[["She ___ a dog.",["have","has","are"],1,"Bei he, she und it verwendest du „has“."],["Mehrzahl von child?",["childs","children","childes"],1,"Die unregelmäßige Mehrzahl von child lautet children."]],
-"Simple Present":[["He ___ football.",["play","plays","playing"],1,"Bei he, she und it bekommt das Verb meistens ein -s."],["I ___ like tea.",["doesn't","don't","isn't"],1,"Bei I verwendest du „don't“: I don't like tea."]]},
-Biologie:{"Tiere":[["Welches Tier ist ein Säugetier?",["Frosch","Delfin","Forelle"],1,"Der Delfin ist ein Säugetier. Er atmet Luft und säugt seine Jungen."],["Womit atmen Fische?",["Lungen","Kiemen","Haut"],1,"Fische nehmen Sauerstoff aus dem Wasser mit ihren Kiemen auf."]],
-"Pflanzen":[["Was brauchen Pflanzen zur Fotosynthese?",["Licht, Wasser und CO₂","Nur Erde","Nur Sauerstoff"],0,"Pflanzen brauchen Licht, Wasser und Kohlenstoffdioxid für die Fotosynthese."],["Welcher Teil nimmt Wasser auf?",["Blüte","Wurzel","Frucht"],1,"Die Wurzeln nehmen Wasser und Mineralstoffe aus dem Boden auf."]]},
-Geschichte:{"Altes Ägypten":[["An welchem Fluss lag das alte Ägypten?",["Nil","Rhein","Donau"],0,"Das alte Ägypten entstand am Nil."],["Wie hieß die Schrift der Ägypter?",["Runen","Hieroglyphen","Latein"],1,"Die Bildzeichen der alten Ägypter nennt man Hieroglyphen."]],
-"Mittelalter":[["Wozu dienten Burgen?",["Schutz und Wohnsitz","Flughafen","Fabrik"],0,"Burgen waren Wohnsitze und konnten zur Verteidigung dienen."],["Wie nennt man einen Kämpfer zu Pferd?",["Ritter","Pharao","Händler"],0,"Ritter waren bewaffnete Kämpfer, häufig zu Pferd."]]},
+const bank = {
+Mathe:{
+"Brüche":[
+["Was ist die Hälfte von 18?",["6","9","12"],1,"Die Hälfte bedeutet durch 2 teilen: 18 : 2 = 9."],
+["Was ist 1/4 von 20?",["4","5","10"],1,"20 : 4 = 5."],
+["1/2 + 1/2 = ?",["1","2","1/4"],0,"Ein Halb plus ein Halb ergibt ein Ganzes."],
+["1/4 + 2/4 = ?",["2/4","3/4","3/8"],1,"Bei gleichem Nenner addierst du die Zähler."],
+["Welcher Bruch ist größer?",["1/2","1/4","Beide gleich"],0,"Ein Halb ist größer als ein Viertel."],
+["Wie viel ist 3/4 von 20?",["10","15","12"],1,"20 : 4 = 5 und 5 × 3 = 15."]
+],
+"Dezimalzahlen":[
+["2,5 + 1,3 = ?",["3,8","3,7","4,8"],0,"2,5 + 1,3 = 3,8."],
+["4,2 × 10 = ?",["4,2","42","420"],1,"Beim Multiplizieren mit 10 rückt das Komma eine Stelle nach rechts."],
+["0,5 + 0,5 = ?",["0,1","1","2"],1,"Fünf Zehntel plus fünf Zehntel sind zehn Zehntel, also 1."],
+["3,6 - 1,2 = ?",["2,4","2,2","1,4"],0,"3,6 minus 1,2 ergibt 2,4."],
+["Was ist 1,5 × 2?",["2,5","3","3,5"],1,"1,5 mal 2 ergibt 3."]
+],
+"Multiplikation und Division":[
+["24 × 6 = ?",["124","144","164"],1,"24 mal 6 ergibt 144."],
+["168 : 7 = ?",["21","24","28"],1,"7 × 24 = 168."],
+["12 × 12 = ?",["124","144","154"],1,"12 mal 12 ergibt 144."],
+["100 : 4 = ?",["20","25","40"],1,"100 geteilt durch 4 ergibt 25."],
+["15 × 8 = ?",["100","120","130"],1,"15 mal 8 ergibt 120."]
+],
+"Geometrie":[
+["Wie viele rechte Winkel hat ein Rechteck?",["2","4","6"],1,"Alle vier Ecken eines Rechtecks sind rechte Winkel."],
+["Wie viele Seiten hat ein Sechseck?",["5","6","8"],1,"Ein Sechseck hat sechs Seiten."],
+["Wie viele Grad hat ein rechter Winkel?",["45°","90°","180°"],1,"Ein rechter Winkel hat 90 Grad."],
+["Wie berechnet man den Umfang eines Quadrats?",["Seite × 4","Seite × Seite","Seite + 2"],0,"Ein Quadrat hat vier gleich lange Seiten."],
+["Wie viele Ecken hat ein Dreieck?",["2","3","4"],1,"Ein Dreieck hat drei Ecken."]
+]
+},
 
-Geografie:
+Deutsch:{
+"Grammatik":[
+["Welches Wort ist ein Verb?",["laufen","blau","Tisch"],0,"Laufen ist ein Verb. Verben beschreiben Tätigkeiten."],
+["Welches Wort ist ein Nomen?",["schnell","Katze","springen"],1,"Katze ist ein Nomen und wird großgeschrieben."],
+["Welches Wort ist ein Adjektiv?",["schön","Haus","rennen"],0,"Schön beschreibt eine Eigenschaft und ist ein Adjektiv."],
+["Welches Wort ist ein Artikel?",["der","laufen","grün"],0,"Der ist ein bestimmter Artikel."],
+["Was ist die Mehrzahl von Maus?",["Mäuse","Mausen","Maus"],0,"Die Mehrzahl von Maus lautet Mäuse."]
+],
+"Rechtschreibung":[
+["Welche Schreibweise ist richtig?",["Fahrrad","Farad","Farrad"],0,"Richtig ist Fahrrad."],
+["Wie schreibt man das Nomen?",["das lesen","das Lesen","das LESen"],1,"Wenn ein Verb als Nomen verwendet wird, schreibt man es groß."],
+["Welches Wort ist richtig?",["nähmlich","nämlich","nemlich"],1,"Nämlich schreibt man mit ä."],
+["Wie schreibt man es richtig?",["vielleicht","vileicht","fileicht"],0,"Vielleicht wird mit ie geschrieben."],
+["Welches Wort ist richtig?",["Schifffahrt","Schiffahrt","Schifahrt"],0,"Schifffahrt wird mit drei f geschrieben."]
+],
+"Satzbau":[
+["Prädikat in „Mia liest ein Buch“?",["Mia","liest","ein Buch"],1,"Das Prädikat sagt, was jemand tut."],
+["Satzzeichen am Ende einer Frage?",[".","?","!"],1,"Eine Frage endet mit einem Fragezeichen."],
+["Wer oder was? fragt nach welchem Satzglied?",["Subjekt","Prädikat","Objekt"],0,"Das Subjekt beantwortet Wer oder was?"],
+["Was ist ein vollständiger Satz?",["Ein roter Ball","Der Hund bellt.","Auf dem Tisch"],1,"Ein vollständiger Satz enthält eine Satzaussage."]
+]
+},
 
- {
-  "Europa – Länder und Hauptstädte": [
-    ["Was ist die Hauptstadt von Spanien?", ["Rom", "Madrid", "Paris"], 1, "Madrid ist die Hauptstadt von Spanien."],
-    ["Was ist die Hauptstadt von Österreich?", ["Wien", "Bern", "Berlin"], 0, "Wien ist die Hauptstadt von Österreich."]
-  ],
-  "Europas Gebirge und Flüsse": [
-    ["Wie heißt das große Gebirge in Mitteleuropa?", ["Alpen", "Harz", "Schwarzwald"], 0, "Die Alpen liegen in Mitteleuropa."],
-    ["Welcher Fluss fließt durch Budapest?", ["Rhein", "Donau", "Seine"], 1, "Die Donau fließt durch Budapest."]
-  ],
-  "Die Europäische Union": [
-    ["Wie wird die Europäische Union abgekürzt?", ["EU", "UNO", "NATO"], 0, "EU steht für Europäische Union."],
-    ["Welche Währung nutzen viele EU-Länder?", ["Dollar", "Euro", "Yen"], 1, "Viele EU-Länder nutzen den Euro."]
-  ],
-  "Kontinente und Länder": [
-    ["Auf welchem Kontinent liegt Deutschland?", ["Asien", "Europa", "Afrika"], 1, "Deutschland liegt in Mitteleuropa."]
-  ],
-  "Karten und Orientierung": [
-    ["Gegenüber von Norden liegt...", ["Osten", "Süden", "Westen"], 1, "Süden liegt gegenüber von Norden."],
-    ["Was zeigt der Kartenmaßstab?", ["Verkleinerungsverhältnis", "Wetter", "Bevölkerungsalter"], 0, "Der Maßstab zeigt, wie Entfernungen verkleinert dargestellt werden."]
-  ]
+Englisch:{
+"Vokabeln":[
+["Was bedeutet apple?",["Birne","Apfel","Kirsche"],1,"Apple bedeutet Apfel."],
+["Was bedeutet school?",["Schule","Haus","Freund"],0,"School bedeutet Schule."],
+["Was bedeutet house?",["Auto","Haus","Baum"],1,"House bedeutet Haus."],
+["Was bedeutet brother?",["Schwester","Mutter","Bruder"],2,"Brother bedeutet Bruder."],
+["Was bedeutet water?",["Wasser","Milch","Saft"],0,"Water bedeutet Wasser."],
+["Was bedeutet book?",["Stift","Buch","Tasche"],1,"Book bedeutet Buch."]
+],
+"Grammatik":[
+["She ___ a dog.",["have","has","are"],1,"Bei she verwendest du has."],
+["Mehrzahl von child?",["childs","children","childes"],1,"Die Mehrzahl lautet children."],
+["I ___ a student.",["am","is","are"],0,"Mit I verwendest du am."],
+["They ___ happy.",["is","am","are"],2,"Mit they verwendest du are."]
+],
+"Simple Present":[
+["He ___ football.",["play","plays","playing"],1,"Bei he bekommt das Verb meistens ein s."],
+["I ___ like tea.",["doesn't","don't","isn't"],1,"Bei I verwendest du don't."],
+["She ___ to school.",["go","goes","going"],1,"Bei she wird aus go die Form goes."],
+["We ___ English.",["learn","learns","learning"],0,"Bei we bleibt das Verb in der Grundform."]
+]
+},
+
+Biologie:{
+"Tiere":[
+["Welches Tier ist ein Säugetier?",["Frosch","Delfin","Forelle"],1,"Der Delfin ist ein Säugetier."],
+["Womit atmen Fische?",["Lungen","Kiemen","Haut"],1,"Fische nehmen Sauerstoff aus dem Wasser mit Kiemen auf."],
+["Was fressen Pflanzenfresser?",["Pflanzen","Fleisch","Steine"],0,"Pflanzenfresser ernähren sich von Pflanzen."],
+["Welches Tier ist ein Insekt?",["Spinne","Biene","Regenwurm"],1,"Bienen gehören zu den Insekten."],
+["Wie viele Beine haben Insekten?",["4","6","8"],1,"Insekten haben sechs Beine."]
+],
+"Pflanzen":[
+["Was brauchen Pflanzen zur Fotosynthese?",["Licht, Wasser und CO₂","Nur Erde","Nur Sauerstoff"],0,"Pflanzen brauchen Licht, Wasser und Kohlenstoffdioxid."],
+["Welcher Teil nimmt Wasser auf?",["Blüte","Wurzel","Frucht"],1,"Die Wurzeln nehmen Wasser aus dem Boden auf."],
+["Welcher Pflanzenteil betreibt meistens Fotosynthese?",["Blatt","Wurzel","Frucht"],0,"In den Blättern findet ein großer Teil der Fotosynthese statt."],
+["Was entsteht bei der Fotosynthese unter anderem?",["Sauerstoff","Sand","Salz"],0,"Pflanzen geben bei der Fotosynthese Sauerstoff ab."],
+["Wozu dient die Blüte?",["Fortpflanzung","Wasseraufnahme","Festhalten im Boden"],0,"Blüten dienen der Fortpflanzung der Pflanze."]
+]
+},
+
+Geschichte:{
+"Altes Ägypten":[
+["An welchem Fluss lag das alte Ägypten?",["Nil","Rhein","Donau"],0,"Das alte Ägypten entstand am Nil."],
+["Wie hieß die Schrift der Ägypter?",["Runen","Hieroglyphen","Latein"],1,"Die Bildzeichen nennt man Hieroglyphen."],
+["Wie hießen die Herrscher Ägyptens?",["Ritter","Pharaonen","Kaiser"],1,"Die Herrscher des alten Ägyptens hießen Pharaonen."],
+["Wozu dienten Pyramiden?",["Als Grabstätten","Als Schulen","Als Häfen"],0,"Pyramiden dienten unter anderem als Grabstätten für Pharaonen."]
+],
+"Mittelalter":[
+["Wozu dienten Burgen?",["Schutz und Wohnsitz","Flughafen","Fabrik"],0,"Burgen waren Wohnsitze und dienten der Verteidigung."],
+["Wie nennt man einen Kämpfer zu Pferd?",["Ritter","Pharao","Händler"],0,"Ritter waren bewaffnete Kämpfer."],
+["Wie nennt man einen Bauern im Mittelalter?",["Bauer","Pharao","Seefahrer"],0,"Bauern arbeiteten auf dem Land und versorgten die Menschen."],
+["Was war eine Burg?",["Eine befestigte Anlage","Ein Schiff","Ein Marktstand"],0,"Burgen waren befestigte Anlagen."]
+]
+},
+
+Geografie:{
+"Europa – Länder und Hauptstädte":[
+["Was ist die Hauptstadt von Spanien?",["Rom","Madrid","Paris"],1,"Madrid ist die Hauptstadt von Spanien."],
+["Was ist die Hauptstadt von Österreich?",["Wien","Bern","Berlin"],0,"Wien ist die Hauptstadt von Österreich."],
+["Was ist die Hauptstadt von Frankreich?",["Paris","London","Lissabon"],0,"Paris ist die Hauptstadt von Frankreich."],
+["Was ist die Hauptstadt von Italien?",["Athen","Rom","Madrid"],1,"Rom ist die Hauptstadt von Italien."],
+["Was ist die Hauptstadt von Polen?",["Prag","Warschau","Budapest"],1,"Warschau ist die Hauptstadt von Polen."],
+["Was ist die Hauptstadt von Griechenland?",["Athen","Oslo","Bern"],0,"Athen ist die Hauptstadt von Griechenland."],
+["Was ist die Hauptstadt von Portugal?",["Lissabon","Dublin","Wien"],0,"Lissabon ist die Hauptstadt von Portugal."],
+["Was ist die Hauptstadt von Norwegen?",["Stockholm","Oslo","Helsinki"],1,"Oslo ist die Hauptstadt von Norwegen."],
+["Was ist die Hauptstadt von Schweden?",["Kopenhagen","Stockholm","Oslo"],1,"Stockholm ist die Hauptstadt von Schweden."],
+["Was ist die Hauptstadt von Tschechien?",["Prag","Warschau","Rom"],0,"Prag ist die Hauptstadt von Tschechien."],
+["In welchem Land liegt Berlin?",["Österreich","Deutschland","Schweiz"],1,"Berlin ist die Hauptstadt von Deutschland."],
+["Welches Land sieht auf der Karte aus wie ein Stiefel?",["Italien","Norwegen","Irland"],0,"Italien hat die typische Stiefelform."]
+],
+"Bekannte Gebirge Europas":[
+["Wie heißt das höchste Gebirge Europas?",["Alpen","Harz","Schwarzwald"],0,"Die Alpen sind das höchste große Gebirge Europas."],
+["In welchem Gebirge liegt der Mont Blanc?",["Alpen","Pyrenäen","Karpaten"],0,"Der Mont Blanc liegt in den Alpen."],
+["Zwischen welchen Ländern liegen die Pyrenäen?",["Deutschland und Polen","Frankreich und Spanien","Italien und Österreich"],1,"Die Pyrenäen liegen zwischen Frankreich und Spanien."],
+["In welchem Land liegen die norwegischen Fjorde?",["Norwegen","Ungarn","Portugal"],0,"Norwegen ist für seine Fjorde bekannt."],
+["Wo liegen die Karpaten?",["In Mittel- und Osteuropa","In Afrika","In Südamerika"],0,"Die Karpaten erstrecken sich durch mehrere Länder Mittel- und Osteuropas."],
+["Welches Gebirge liegt zwischen Frankreich und Spanien?",["Alpen","Pyrenäen","Ural"],1,"Die Pyrenäen bilden einen Teil der Grenze zwischen Frankreich und Spanien."],
+["Wie heißt das Gebirge in Südosteuropa?",["Balkan","Harz","Eifel"],0,"Der Balkan ist eine Gebirgs- und Landschaftsregion in Südosteuropa."]
+],
+"Bekannte Flüsse Europas":[
+["Wie heißt der längste Fluss Europas?",["Donau","Wolga","Rhein"],1,"Die Wolga ist der längste Fluss Europas."],
+["Welcher Fluss fließt durch Budapest?",["Rhein","Donau","Seine"],1,"Die Donau fließt durch Budapest."],
+["Welcher Fluss fließt durch Paris?",["Themse","Rhein","Seine"],2,"Die Seine fließt durch Paris."],
+["Welcher Fluss fließt durch London?",["Themse","Donau","Po"],0,"Die Themse fließt durch London."],
+["Welcher Fluss fließt durch Köln?",["Seine","Rhein","Wolga"],1,"Der Rhein fließt durch Köln."],
+["Welcher Fluss fließt durch Rom?",["Tiber","Donau","Elbe"],0,"Der Tiber fließt durch Rom."],
+["Welcher Fluss fließt durch Wien?",["Donau","Themse","Seine"],0,"Die Donau fließt durch Wien."],
+["Welcher Fluss fließt durch Deutschland und die Niederlande?",["Rhein","Ebro","Tajo"],0,"Der Rhein fließt durch Deutschland und die Niederlande."],
+["Welcher Fluss mündet ins Schwarze Meer?",["Donau","Themse","Seine"],0,"Die Donau mündet ins Schwarze Meer."]
+],
+"Meere und Seen Europas":[
+["Welches Meer liegt zwischen Europa und Afrika?",["Ostsee","Mittelmeer","Nordsee"],1,"Das Mittelmeer liegt zwischen Südeuropa und Nordafrika."],
+["Welches Meer liegt nördlich von Deutschland?",["Nordsee","Mittelmeer","Schwarzes Meer"],0,"Die Nordsee liegt nördlich von Deutschland."],
+["Welches Meer liegt östlich von Schweden?",["Ostsee","Rotes Meer","Karibisches Meer"],0,"Die Ostsee liegt östlich von Schweden."],
+["Welcher See liegt zwischen Deutschland, Österreich und der Schweiz?",["Bodensee","Plattensee","Genfersee"],0,"Der Bodensee grenzt an Deutschland, Österreich und die Schweiz."]
+],
+"Die Europäische Union":[
+["Wie wird die Europäische Union abgekürzt?",["EU","UNO","NATO"],0,"EU steht für Europäische Union."],
+["Welche Währung nutzen viele EU-Länder?",["Dollar","Euro","Yen"],1,"Viele, aber nicht alle EU-Länder nutzen den Euro."],
+["Was ist ein Ziel der EU?",["Zusammenarbeit in Europa","Alle Länder gleich machen","Ein gemeinsames Schulfach"],0,"Die EU fördert Frieden und Zusammenarbeit."],
+["Gehört Deutschland zur EU?",["Ja","Nein","Nur im Sommer"],0,"Deutschland ist Mitglied der Europäischen Union."]
+],
+"Klima und Landschaften Europas":[
+["Wo ist es in Europa oft besonders warm?",["Im Süden","Im Norden","Überall gleich"],0,"Südeuropa hat meist warme Sommer und milde Winter."],
+["Was ist ein Fjord?",["Ein tiefer Meeresarm","Ein Vulkan","Eine Wüste"],0,"Fjorde sind lange Meeresarme zwischen steilen Bergen."],
+["Was ist typisch für das Mittelmeerklima?",["Heiße trockene Sommer","Eisige Sommer","Ganzjährig Schnee"],0,"Am Mittelmeer sind die Sommer meist heiß und trocken."],
+["Welche Landschaft gibt es in Nordeuropa?",["Fjorde","Wüste Sahara","Tropischer Regenwald"],0,"Norwegen ist beispielsweise für seine Fjorde bekannt."]
+],
+"Karten und Orientierung":[
+["Was liegt gegenüber von Norden?",["Osten","Süden","Westen"],1,"Süden liegt gegenüber von Norden."],
+["Was zeigt der Kartenmaßstab?",["Entfernungen verkleinert","Das Wetter","Die Einwohnerzahl"],0,"Der Maßstab zeigt, wie Entfernungen verkleinert dargestellt werden."],
+["In welcher Richtung liegt Spanien von Deutschland aus?",["Südwesten","Nordosten","Osten"],0,"Spanien liegt von Deutschland aus gesehen im Südwesten."],
+["Welche Himmelsrichtung liegt rechts auf einer normalen Karte?",["Westen","Osten","Norden"],1,"Auf einer normalen Karte ist Osten rechts."]
+]
 }
-  };
-let subject = "";
-let topic = "";
-let questions = [];
-let index = 0;
-let score = 0;
-let right = 0;
-let wrong = 0;
-
-const el = id => document.getElementById(id);
-
-function updateStats() {
-  el("p").textContent = score;
-  el("r").textContent = right;
-  el("w").textContent = wrong;
-}
-
-function showSubjects() {
-  el("subjects").innerHTML = "";
-  Object.keys(bank).forEach(name => {
-    const b = document.createElement("button");
-    b.textContent = name;
-    b.onclick = () => {
-      subject = name;
-      el("subjects").querySelectorAll("button").forEach(x => x.classList.remove("sel"));
-      b.classList.add("sel");
-      showTopics();
-    };
-    el("subjects").appendChild(b);
-  });
-}
-
-function showTopics() {
-  el("topics").innerHTML = "";
-  el("hint").textContent = "Wähle ein Thema für " + subject + ".";
-  Object.keys(bank[subject]).forEach(name => {
-    const b = document.createElement("button");
-    b.textContent = name;
-    b.onclick = () => {
-      topic = name;
-      el("topics").querySelectorAll("button").forEach(x => x.classList.remove("sel"));
-      b.classList.add("sel");
-      start();
-    };
-    el("topics").appendChild(b);
-  });
-}
-
-function start() {
-  questions = bank[subject][topic];
-  index = 0;
-  el("selected").textContent = subject + " – " + topic;
-  el("again").classList.add("hide");
-  showQuestion();
-}
-
-function showQuestion() {
-  el("feedback").innerHTML = "";
-  el("next").classList.add("hide");
-  const q = questions[index];
-  el("progress").textContent = "Aufgabe " + (index + 1) + " von " + questions.length;
-  el("q").textContent = q[0];
-  el("answers").innerHTML = "";
-
-  q[1].forEach((answer, i) => {
-    const b = document.createElement("button");
-    b.textContent = String.fromCharCode(65 + i) + ") " + answer;
-    b.onclick = () => checkAnswer(i);
-    el("answers").appendChild(b);
-  });
-}
-
-function checkAnswer(choice) {
-  const q = questions[index];
-  const buttons = el("answers").querySelectorAll("button");
-  buttons.forEach(b => b.disabled = true);
-
-  if (choice === q[2]) {
-    score += 10;
-    right++;
-    el("feedback").innerHTML =
-      '<div class="good"><b>✅ Richtig! +10 Punkte</b><p>' + q[3] + '</p></div>';
-  } else {
-    wrong++;
-    el("feedback").innerHTML =
-      '<div class="bad"><b>❌ Leider falsch!</b><p>Richtig ist: ' +
-      q[1][q[2]] + '</p><p>' + q[3] + '</p></div>';
-  }
-
-  updateStats();
-  el("next").classList.remove("hide");
-  el("next").textContent =
-    index === questions.length - 1 ? "Ergebnis anzeigen" : "Nächste Aufgabe ➜";
-}
-
-el("next").onclick = () => {
-  index++;
-  if (index < questions.length) {
-    showQuestion();
-  } else {
-    el("q").textContent = "🎉 Fertig! Du hast " + right + " Aufgaben richtig.";
-    el("progress").textContent = "Deine Punkte: " + score;
-    el("answers").innerHTML = "";
-    el("feedback").innerHTML = "";
-    el("next").classList.add("hide");
-    el("again").classList.remove("hide");
-  }
 };
 
-el("again").onclick = start;
+let subject="",topic="",questions=[],index=0;
+let score=0,right=0,wrong=0;
+
+const el=id=>document.getElementById(id);
+
+function stats(){
+el("p").textContent=score;
+el("r").textContent=right;
+el("w").textContent=wrong;
+}
+
+function showSubjects(){
+el("subjects").innerHTML="";
+Object.keys(bank).forEach(name=>{
+const b=document.createElement("button");
+b.textContent=name;
+b.onclick=()=>{
+subject=name;
+el("subjects").querySelectorAll("button").forEach(x=>x.classList.remove("sel"));
+b.classList.add("sel");
+showTopics();
+};
+el("subjects").appendChild(b);
+});
+}
+
+function showTopics(){
+el("topics").innerHTML="";
+el("hint").textContent="Wähle ein Thema für "+subject+".";
+Object.keys(bank[subject]).forEach(name=>{
+const b=document.createElement("button");
+b.textContent=name;
+b.onclick=()=>{
+topic=name;
+el("topics").querySelectorAll("button").forEach(x=>x.classList.remove("sel"));
+b.classList.add("sel");
+start();
+};
+el("topics").appendChild(b);
+});
+}
+
+function start(){
+questions=bank[subject][topic].slice();
+index=0;
+el("selected").textContent=subject+" – "+topic;
+el("again").classList.add("hide");
+showQuestion();
+}
+
+function showQuestion(){
+el("feedback").innerHTML="";
+el("next").classList.add("hide");
+const q=questions[index];
+el("progress").textContent="Aufgabe "+(index+1)+" von "+questions.length;
+el("q").textContent=q[0];
+el("answers").innerHTML="";
+q[1].forEach((answer,i)=>{
+const b=document.createElement("button");
+b.textContent=String.fromCharCode(65+i)+") "+answer;
+b.onclick=()=>checkAnswer(i);
+el("answers").appendChild(b);
+});
+}
+
+function checkAnswer(choice){
+const q=questions[index];
+const buttons=el("answers").querySelectorAll("button");
+buttons.forEach(b=>b.disabled=true);
+
+if(choice===q[2]){
+score+=10;
+right++;
+el("feedback").innerHTML='<div class="good"><b>✅ Richtig! +10 Punkte</b></div>';
+}else{
+wrong++;
+el("feedback").innerHTML='<div class="bad"><b>❌ Leider falsch!</b></div>';
+}
+const explanation=document.createElement("p");
+explanation.textContent="Erklärung: "+q[3];
+el("feedback").appendChild(explanation);
+if(choice!==q[2]){
+const correct=document.createElement("p");
+correct.textContent="Richtige Antwort: "+q[1][q[2]];
+el("feedback").appendChild(correct);
+}
+stats();
+el("next").classList.remove("hide");
+el("next").textContent=index===questions.length-1?"Ergebnis anzeigen":"Nächste Aufgabe ➜";
+}
+
+el("next").onclick=()=>{
+index++;
+if(index<questions.length){
+showQuestion();
+}else{
+el("q").textContent="🎉 Geschafft! Du hast "+right+" Aufgaben insgesamt richtig beantwortet.";
+el("progress").textContent="Deine Punkte: "+score+" | Falsch beantwortet: "+wrong;
+el("answers").innerHTML="";
+el("feedback").innerHTML="";
+el("next").classList.add("hide");
+el("again").classList.remove("hide");
+}
+};
+
+el("again").onclick=start;
 
 showSubjects();
-updateStats();
+stats();
 </script>
 </body>
 </html>
+
 
 
 
