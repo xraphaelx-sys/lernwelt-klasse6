@@ -7,377 +7,980 @@
 <title>Lernwelt Klasse 6</title>
 <style>
 *{box-sizing:border-box}
-body{font:16px system-ui;margin:0;background:#f1f5fb;color:#17233b}
-main{max-width:950px;margin:auto;padding:18px}
-.hero{background:linear-gradient(120deg,#245a9b,#6043a5);color:white;padding:25px;border-radius:18px}
-.card{background:white;border:1px solid #dce3ef;border-radius:15px;padding:17px;margin:15px 0}
-button,select{padding:12px;border:1px solid #ccd5e5;border-radius:10px;background:white;cursor:pointer;color:#17233b;font-size:15px}
-button:hover,.sel{border:2px solid #5368d9;background:#eef0ff}
-button:disabled{opacity:.6;cursor:default}
-.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(145px,1fr));gap:9px}
-.answers{display:grid;gap:9px}
-.primary{background:#5368d9;color:white;width:100%;margin-top:12px}
-.good,.bad{padding:13px;border-radius:10px;margin-top:12px}
-.good{background:#e7f8ed}
-.bad{background:#fff0ef}
-.hide{display:none}
-.muted{color:#63718a}
-.stats{display:flex;gap:18px;flex-wrap:wrap}
+body{margin:0;font-family:Arial,sans-serif;background:#f1f5fb;color:#172033}
+header{background:linear-gradient(120deg,#2457c5,#713dcc);color:white;padding:28px 16px;text-align:center}
+header h1{margin:0 0 8px;font-size:30px}
+header p{margin:0}
+main{max-width:850px;margin:25px auto;padding:0 14px}
+.panel{background:white;padding:22px;border-radius:16px;margin-bottom:18px;box-shadow:0 4px 18px #17203312}
+label{display:block;font-weight:bold;margin:12px 0 6px}
+select{width:100%;padding:13px;border:1px solid #ccd4e2;border-radius:9px;font-size:16px}
+button{border:0;border-radius:9px;padding:12px 17px;font-size:15px;font-weight:bold;cursor:pointer;background:#285bc5;color:white;margin:5px 4px 5px 0}
+button:hover{filter:brightness(.94)}
+button:disabled{opacity:.5;cursor:not-allowed}
+.answer{display:block;width:100%;text-align:left;background:#edf2fc;color:#172033;border:2px solid transparent;margin:9px 0}
+.answer.correct{background:#dcfce7;border-color:#16a34a}
+.answer.wrong{background:#fee2e2;border-color:#dc2626}
+.stats{display:flex;gap:10px;flex-wrap:wrap;margin:15px 0}
+.stat{flex:1;min-width:95px;background:#f1f5fb;padding:12px;border-radius:10px;text-align:center}
+.stat strong{display:block;font-size:23px}
+#quiz{display:none}
+#feedback{padding:13px;border-radius:10px;margin-top:14px;display:none;line-height:1.5}
+#progress{height:10px;background:#e4e9f2;border-radius:20px;overflow:hidden;margin:14px 0}
+#bar{height:100%;width:0;background:#285bc5;transition:width .2s}
+.small{color:#667085;font-size:14px}
+footer{text-align:center;color:#667085;padding:20px}
 </style>
 </head>
 <body>
-<main>
-<header class="hero">
-<h1>🎓 Lernwelt – Klasse 6</h1>
-<div>Dein Lernplatz für Klassenarbeiten und Tests!</div>
-<p class="stats">
-⭐ Punkte: <b id="p">0</b>
-✅ Richtig: <b id="r">0</b>
-📚 Falsch: <b id="w">0</b>
-</p>
+<header>
+<h1>📚 Lernwelt Klasse 6</h1>
+<p>Übe verschiedene Schulfächer und verbessere dich Schritt für Schritt!</p>
 </header>
-
-<section class="card">
-<h2>1. Fach auswählen</h2>
-<div class="grid" id="subjects"></div>
+<main>
+<section class="panel" id="start">
+<h2>Wähle dein Lernfach</h2>
+<label for="subject">Fach</label>
+<select id="subject"></select>
+<label for="topic">Thema</label>
+<select id="topic"></select>
+<p class="small">Jede Runde enthält 30 unterschiedliche Fragen. Die Reihenfolge wird gemischt.</p>
+<button onclick="startQuiz()">Lernen starten</button>
 </section>
 
-<section class="card">
-<h2>2. Thema auswählen</h2>
-<p class="muted" id="hint">Wähle zuerst ein Fach.</p>
-<div class="grid" id="topics"></div>
-</section>
-
-<section class="card">
-<h2>3. Aufgaben üben</h2>
-<p id="selected" class="muted">Noch kein Thema ausgewählt</p>
-<p id="progress"></p>
-<h3 id="q">Wähle ein Fach und ein Thema!</h3>
-<div class="answers" id="answers"></div>
+<section class="panel" id="quiz">
+<div class="stats">
+<div class="stat"><strong id="points">0</strong><span>Punkte</span></div>
+<div class="stat"><strong id="right">0</strong><span>Richtig</span></div>
+<div class="stat"><strong id="wrong">0</strong><span>Falsch</span></div>
+</div>
+<div id="progress"><div id="bar"></div></div>
+<p class="small" id="counter"></p>
+<h2 id="question"></h2>
+<div id="answers"></div>
 <div id="feedback"></div>
-<button class="primary hide" id="next">Nächste Aufgabe ➜</button>
-<button class="hide" id="again">Thema neu starten</button>
+<button id="next" onclick="nextQuestion()" disabled>Weiter</button>
+<button onclick="backToMenu()">Thema wechseln</button>
 </section>
 </main>
+<footer>Lernwelt Klasse 6 · Viel Erfolg beim Lernen! ⭐</footer>
 
 <script>
 const bank = {
-Mathe:{
-"Brüche":[
-["Was ist die Hälfte von 18?",["6","9","12"],1,"18 : 2 = 9."],
-["Was ist 1/4 von 20?",["4","5","10"],1,"20 : 4 = 5."],
-["1/2 + 1/2 = ?",["1","2","1/4"],0,"Ein Halb plus ein Halb ergibt ein Ganzes."],
-["1/4 + 2/4 = ?",["2/4","3/4","3/8"],1,"Bei gleichem Nenner addierst du die Zähler."],
-["Welcher Bruch ist größer?",["1/2","1/4","Beide gleich"],0,"Ein Halb ist größer als ein Viertel."],
-["Wie viel ist 3/4 von 20?",["10","15","12"],1,"20 : 4 = 5 und 5 × 3 = 15."]
+"Mathe": {
+"Brüche": [
+["Was ist ein Bruch?","Eine Zahl, die Teile eines Ganzen beschreibt","Ein Bruch beschreibt Teile eines Ganzen."],
+["Wie heißt die obere Zahl eines Bruchs?","Zähler","Der Zähler steht oben."],
+["Wie heißt die untere Zahl eines Bruchs?","Nenner","Der Nenner steht unten."],
+["Welcher Bruch bedeutet eine Hälfte?","1/2","Ein Teil von zwei gleich großen Teilen ist eine Hälfte."],
+["Welcher Bruch ist größer: 1/2 oder 1/4?","1/2","Eine Hälfte ist größer als ein Viertel."],
+["Wie viel ist 1/2 + 1/2?","1","Zwei Hälften ergeben ein Ganzes."],
+["Wie viel ist 1/4 + 1/4?","1/2","Zwei Viertel sind ein Halb."],
+["Wie viel ist 2/5 + 1/5?","3/5","Bei gleichem Nenner addierst du die Zähler."],
+["Wie viel ist 4/7 - 2/7?","2/7","Bei gleichem Nenner ziehst du die Zähler ab."],
+["Welcher Bruch ist gleich 1/2?","2/4","Zähler und Nenner wurden mit zwei multipliziert."],
+["Wie viel ist die Hälfte von 10?","5","10 geteilt durch 2 ergibt 5."],
+["Wie viel ist ein Viertel von 20?","5","20 geteilt durch 4 ergibt 5."],
+["Wie viel ist 3/6 gekürzt?","1/2","Du kannst Zähler und Nenner durch 3 teilen."],
+["Welcher Bruch ist größer: 3/4 oder 1/4?","3/4","Drei Viertel sind mehr als ein Viertel."],
+["Wie viel ist 1/3 + 1/3?","2/3","Ein Drittel plus ein Drittel ergibt zwei Drittel."],
+["Wie viel ist 5/8 - 3/8?","2/8","Fünf Achtel minus drei Achtel sind zwei Achtel."],
+["Was ist ein echter Bruch?","Der Zähler ist kleiner als der Nenner","Ein echter Bruch ist kleiner als eins."],
+["Was ist ein unechter Bruch?","Der Zähler ist größer oder gleich dem Nenner","Ein unechter Bruch ist mindestens eins."],
+["Wie viel ist 1/5 von 30?","6","30 geteilt durch 5 ergibt 6."],
+["Wie viel ist 3/4 von 8?","6","Ein Viertel von 8 ist 2; drei Viertel sind 6."],
+["Welcher Bruch ist kleiner: 1/3 oder 1/2?","1/3","Bei gleichem Zähler ist der Bruch mit größerem Nenner kleiner."],
+["Wie viel ist 2/6 gekürzt?","1/3","Beide Zahlen lassen sich durch 2 teilen."],
+["Wie viel ist 3/10 + 4/10?","7/10","Gleicher Nenner: 3 plus 4 ergibt 7."],
+["Wie viel ist 9/12 - 5/12?","4/12","9 minus 5 ergibt 4."],
+["Welcher Bruch entspricht 0,5?","1/2","0,5 ist die Hälfte."],
+["Welcher Bruch entspricht 0,25?","1/4","0,25 ist ein Viertel."],
+["Wie viel ist 2/3 von 12?","8","Ein Drittel von 12 ist 4; zweimal 4 ist 8."],
+["Wie viel ist 1/10 von 90?","9","90 geteilt durch 10 ergibt 9."],
+["Wie nennt man 1/100?","Ein Hundertstel","Der Nenner 100 bedeutet Hundertstel."],
+["Wie viel ist 4/4?","1","Vier Viertel ergeben ein Ganzes."]
 ],
-"Dezimalzahlen":[
-["2,5 + 1,3 = ?",["3,8","3,7","4,8"],0,"2,5 + 1,3 = 3,8."],
-["4,2 × 10 = ?",["4,2","42","420"],1,"Beim Multiplizieren mit 10 rückt das Komma eine Stelle nach rechts."],
-["0,5 + 0,5 = ?",["0,1","1","2"],1,"Das ergibt 1."],
-["3,6 - 1,2 = ?",["2,4","2,2","1,4"],0,"3,6 minus 1,2 ergibt 2,4."],
-["Was ist 1,5 × 2?",["2,5","3","3,5"],1,"1,5 mal 2 ergibt 3."]
-],
-"Multiplikation und Division":[
-["24 × 6 = ?",["124","144","164"],1,"24 mal 6 ergibt 144."],
-["168 : 7 = ?",["21","24","28"],1,"7 × 24 = 168."],
-["12 × 12 = ?",["124","144","154"],1,"12 mal 12 ergibt 144."],
-["100 : 4 = ?",["20","25","40"],1,"100 geteilt durch 4 ergibt 25."],
-["15 × 8 = ?",["100","120","130"],1,"15 mal 8 ergibt 120."]
-],
-"Geometrie":[
-["Wie viele rechte Winkel hat ein Rechteck?",["2","4","6"],1,"Ein Rechteck hat vier rechte Winkel."],
-["Wie viele Seiten hat ein Sechseck?",["5","6","8"],1,"Ein Sechseck hat sechs Seiten."],
-["Wie viele Grad hat ein rechter Winkel?",["45°","90°","180°"],1,"Ein rechter Winkel hat 90 Grad."],
-["Wie berechnet man den Umfang eines Quadrats?",["Seite × 4","Seite × Seite","Seite + 2"],0,"Ein Quadrat hat vier gleich lange Seiten."],
-["Wie viele Ecken hat ein Dreieck?",["2","3","4"],1,"Ein Dreieck hat drei Ecken."]
+"Dezimalzahlen": [
+["Wie liest man 0,5?","Null Komma fünf","Die 5 steht an der Zehntelstelle."],
+["Wie viel ist 0,3 + 0,2?","0,5","Drei Zehntel plus zwei Zehntel sind fünf Zehntel."],
+["Wie viel ist 1,5 + 2,5?","4","1,5 plus 2,5 ergibt 4."],
+["Wie viel ist 3,7 - 1,2?","2,5","Rechne die Kommas untereinander."],
+["Welche Zahl ist größer: 0,8 oder 0,6?","0,8","Acht Zehntel sind mehr als sechs Zehntel."],
+["Was ist 0,1 als Bruch?","1/10","Eine Stelle nach dem Komma bedeutet Zehntel."],
+["Was ist 0,25 als Bruch?","1/4","25 Hundertstel entsprechen einem Viertel."],
+["Wie viel ist 2,4 mal 10?","24","Beim Multiplizieren mit 10 wandert das Komma eine Stelle nach rechts."],
+["Wie viel ist 35 geteilt durch 10?","3,5","Beim Teilen durch 10 wandert das Komma eine Stelle nach links."],
+["Wie viel ist 0,5 mal 2?","1","Die Hälfte mal zwei ergibt ein Ganzes."],
+["Wie viel ist 4,8 + 0,2?","5","Zwei Zehntel ergänzen 4,8 zu 5."],
+["Wie viel ist 6,0 - 0,7?","5,3","Sechs minus sieben Zehntel ergibt 5,3."],
+["Welche Zahl ist kleiner: 1,09 oder 1,9?","1,09","1,09 ist kleiner als 1,90."],
+["Wie viele Hundertstel hat 0,45?","45","0,45 sind 45 Hundertstel."],
+["Welche Zahl ist die Hälfte von 0,8?","0,4","Die Hälfte von acht Zehnteln sind vier Zehntel."],
+["Wie viel ist 1,2 mal 3?","3,6","12 Zehntel mal 3 sind 36 Zehntel."],
+["Wie viel ist 5,5 geteilt durch 5?","1,1","5,5 geteilt durch 5 ergibt 1,1."],
+["Wie schreibt man sieben Zehntel?","0,7","Sieben Zehntel schreibt man 0,7."],
+["Wie schreibt man neun Hundertstel?","0,09","Neun Hundertstel haben eine Null an der Zehntelstelle."],
+["Welche Zahl liegt zwischen 2,4 und 2,6?","2,5","2,5 liegt genau in der Mitte."],
+["Wie viel ist 0,75 + 0,25?","1","75 Hundertstel plus 25 Hundertstel sind 100 Hundertstel."],
+["Wie viel ist 10 - 3,6?","6,4","10,0 minus 3,6 ergibt 6,4."],
+["Was ist 0,2 mal 10?","2","Mit 10 multiplizieren verschiebt das Komma nach rechts."],
+["Was ist 8,4 geteilt durch 10?","0,84","Beim Teilen durch 10 verschiebt sich das Komma nach links."],
+["Welche Zahl ist größer: 2,05 oder 2,5?","2,5","2,50 ist größer als 2,05."],
+["Wie viel ist 3,25 + 1?","4,25","Eine ganze Zahl wird vor dem Komma addiert."],
+["Wie viel ist 7,5 - 2,5?","5","Die Differenz beträgt 5."],
+["Wie viel ist 0,4 mal 5?","2","Vier Zehntel fünfmal ergeben 20 Zehntel."],
+["Wie viel ist 9,6 geteilt durch 3?","3,2","9,6 geteilt durch 3 ergibt 3,2."],
+["Wie rundet man 2,78 auf eine Nachkommastelle?","2,8","Die zweite Nachkommastelle ist 8, also wird aufgerundet."]
 ]
 },
-Deutsch:{
-"Grammatik":[
-["Welches Wort ist ein Verb?",["laufen","blau","Tisch"],0,"Laufen ist ein Verb."],
-["Welches Wort ist ein Nomen?",["schnell","Katze","springen"],1,"Katze ist ein Nomen und wird großgeschrieben."],
-["Welches Wort ist ein Adjektiv?",["schön","Haus","rennen"],0,"Schön beschreibt eine Eigenschaft."],
-["Welches Wort ist ein Artikel?",["der","laufen","grün"],0,"Der ist ein bestimmter Artikel."],
-["Was ist die Mehrzahl von Maus?",["Mäuse","Mausen","Maus"],0,"Die Mehrzahl lautet Mäuse."]
+
+"Multiplikation und Division": [
+["Wie viel ist 7 · 8?","56","7 mal 8 ergibt 56."],
+["Wie viel ist 9 · 6?","54","9 mal 6 ergibt 54."],
+["Wie viel ist 12 · 12?","144","12 mal 12 ergibt 144."],
+["Wie viel ist 125 · 4?","500","125 mal 4 ergibt 500."],
+["Wie viel ist 15 · 3?","45","15 mal 3 ergibt 45."],
+["Wie viel ist 96 : 8?","12","8 mal 12 ist 96."],
+["Wie viel ist 144 : 12?","12","12 mal 12 ist 144."],
+["Wie viel ist 250 : 5?","50","250 geteilt durch 5 ergibt 50."],
+["Wie viel ist 81 : 9?","9","9 mal 9 ergibt 81."],
+["Wie viel ist 13 · 5?","65","13 mal 5 ergibt 65."],
+["Wie viel ist 24 · 4?","96","24 mal 4 ergibt 96."],
+["Wie viel ist 360 : 6?","60","360 geteilt durch 6 ergibt 60."],
+["Wie viel ist 18 · 7?","126","18 mal 7 ergibt 126."],
+["Wie viel ist 225 : 3?","75","225 geteilt durch 3 ergibt 75."],
+["Wie viel ist 14 · 9?","126","14 mal 9 ergibt 126."],
+["Wie viel ist 420 : 7?","60","420 geteilt durch 7 ergibt 60."],
+["Wie viel ist 35 · 6?","210","35 mal 6 ergibt 210."],
+["Wie viel ist 1.000 : 10?","100","1.000 geteilt durch 10 ergibt 100."],
+["Wie viel ist 32 · 3?","96","32 mal 3 ergibt 96."],
+["Wie viel ist 560 : 8?","70","560 geteilt durch 8 ergibt 70."],
+["Wie viel ist 45 · 2?","90","45 mal 2 ergibt 90."],
+["Wie viel ist 720 : 9?","80","720 geteilt durch 9 ergibt 80."],
+["Wie viel ist 16 · 6?","96","16 mal 6 ergibt 96."],
+["Wie viel ist 630 : 7?","90","630 geteilt durch 7 ergibt 90."],
+["Wie viel ist 28 · 5?","140","28 mal 5 ergibt 140."],
+["Wie viel ist 480 : 12?","40","12 mal 40 ist 480."],
+["Wie viel ist 19 · 4?","76","19 mal 4 ergibt 76."],
+["Wie viel ist 900 : 30?","30","900 geteilt durch 30 ergibt 30."],
+["Wie viel ist 75 · 4?","300","75 mal 4 ergibt 300."],
+["Wie viel ist 1.200 : 6?","200","1.200 geteilt durch 6 ergibt 200."]
 ],
-"Rechtschreibung":[
-["Welche Schreibweise ist richtig?",["Fahrrad","Farad","Farrad"],0,"Richtig ist Fahrrad."],
-["Wie schreibt man das Nomen?",["das lesen","das Lesen","das LESen"],1,"Als Nomen verwendete Verben schreibt man groß."],
-["Welches Wort ist richtig?",["nähmlich","nämlich","nemlich"],1,"Nämlich schreibt man mit ä."],
-["Wie schreibt man es richtig?",["vielleicht","vileicht","fileicht"],0,"Vielleicht wird mit ie geschrieben."],
-["Welches Wort ist richtig?",["Schifffahrt","Schiffahrt","Schifahrt"],0,"Schifffahrt wird mit drei f geschrieben."]
-],
-"Satzbau":[
-["Prädikat in „Mia liest ein Buch“?",["Mia","liest","ein Buch"],1,"Das Prädikat sagt, was jemand tut."],
-["Satzzeichen am Ende einer Frage?",[".","?","!"],1,"Eine Frage endet mit einem Fragezeichen."],
-["Wer oder was? fragt nach welchem Satzglied?",["Subjekt","Prädikat","Objekt"],0,"Das Subjekt beantwortet Wer oder was?"],
-["Was ist ein vollständiger Satz?",["Ein roter Ball","Der Hund bellt.","Auf dem Tisch"],1,"Ein vollständiger Satz enthält eine Satzaussage."]
+
+"Geometrie": [
+["Wie viele Ecken hat ein Dreieck?","3","Ein Dreieck hat drei Ecken."],
+["Wie viele Seiten hat ein Quadrat?","4","Ein Quadrat hat vier gleich lange Seiten."],
+["Wie viele rechte Winkel hat ein Rechteck?","4","Alle vier Winkel sind rechte Winkel."],
+["Wie viele Seiten hat ein Sechseck?","6","Ein Sechseck hat sechs Seiten."],
+["Wie nennt man den Abstand vom Mittelpunkt eines Kreises zum Rand?","Radius","Der Radius geht vom Mittelpunkt bis zum Kreisrand."],
+["Wie nennt man die Strecke durch den Mittelpunkt eines Kreises?","Durchmesser","Der Durchmesser geht durch den Mittelpunkt von Rand zu Rand."],
+["Wie viele Grad hat ein rechter Winkel?","90 Grad","Ein rechter Winkel misst 90 Grad."],
+["Wie viele Grad hat ein gestreckter Winkel?","180 Grad","Ein gestreckter Winkel bildet eine gerade Linie."],
+["Wie viele Grad hat ein Vollwinkel?","360 Grad","Ein Vollwinkel ist eine ganze Drehung."],
+["Wie nennt man ein Viereck mit vier gleich langen Seiten und vier rechten Winkeln?","Quadrat","Ein Quadrat hat vier gleich lange Seiten und vier rechte Winkel."],
+["Wie nennt man eine Linie ohne Anfang und Ende?","Gerade","Eine Gerade verläuft unendlich in beide Richtungen."],
+["Wie nennt man eine Linie mit Anfang und Ende?","Strecke","Eine Strecke hat zwei Endpunkte."],
+["Wie viele Symmetrieachsen hat ein Quadrat?","4","Ein Quadrat hat vier Symmetrieachsen."],
+["Wie viele Ecken hat ein Fünfeck?","5","Ein Fünfeck hat fünf Ecken."],
+["Wie viele Flächen hat ein Würfel?","6","Ein Würfel besitzt sechs quadratische Flächen."],
+["Wie viele Kanten hat ein Würfel?","12","Ein Würfel hat zwölf Kanten."],
+["Wie viele Ecken hat ein Würfel?","8","Ein Würfel hat acht Ecken."],
+["Welche Einheit verwendet man für den Umfang?","Zentimeter","Der Umfang ist eine Länge und wird zum Beispiel in Zentimetern gemessen."],
+["Wie berechnet man den Umfang eines Quadrats?","4 · Seitenlänge","Alle vier Seiten sind gleich lang."],
+["Wie groß ist der Umfang eines Quadrats mit 5 cm Seitenlänge?","20 cm","4 mal 5 cm ergibt 20 cm."],
+["Wie groß ist die Fläche eines Quadrats mit 4 cm Seitenlänge?","16 cm²","4 mal 4 ergibt 16 Quadratzentimeter."],
+["Wie nennt man einen Winkel kleiner als 90 Grad?","Spitzer Winkel","Ein spitzer Winkel ist kleiner als 90 Grad."],
+["Wie nennt man einen Winkel größer als 90 und kleiner als 180 Grad?","Stumpfer Winkel","Ein stumpfer Winkel liegt zwischen 90 und 180 Grad."],
+["Wie viele Seiten hat ein Achteck?","8","Ein Achteck besitzt acht Seiten."],
+["Welche Form hat ein Fußball ungefähr?","Kugel","Ein Fußball ist annähernd kugelförmig."],
+["Wie nennt man zwei Geraden, die sich niemals schneiden?","Parallele Geraden","Parallele Geraden haben überall denselben Abstand."],
+["Wie nennt man zwei Geraden, die sich im rechten Winkel schneiden?","Senkrechte Geraden","Senkrechte Geraden bilden einen 90-Grad-Winkel."],
+["Wie viele Ecken hat ein Quader?","8","Ein Quader hat acht Ecken."],
+["Wie viele Flächen hat ein Quader?","6","Ein Quader hat sechs rechteckige Flächen."],
+["Wie nennt man den Rand einer geometrischen Figur?","Umfang","Der Umfang beschreibt die gesamte Länge des Randes."]
 ]
 },
-Englisch:{
-"Vokabeln":[
-["Was bedeutet apple?",["Birne","Apfel","Kirsche"],1,"Apple bedeutet Apfel."],
-["Was bedeutet school?",["Schule","Haus","Freund"],0,"School bedeutet Schule."],
-["Was bedeutet house?",["Auto","Haus","Baum"],1,"House bedeutet Haus."],
-["Was bedeutet brother?",["Schwester","Mutter","Bruder"],2,"Brother bedeutet Bruder."],
-["Was bedeutet water?",["Wasser","Milch","Saft"],0,"Water bedeutet Wasser."],
-["Was bedeutet book?",["Stift","Buch","Tasche"],1,"Book bedeutet Buch."]
+
+"Deutsch": {
+"Grammatik": [
+["Was ist ein Nomen?","Ein Namenwort","Nomen bezeichnen Menschen, Tiere, Dinge oder Gefühle."],
+["Was ist ein Verb?","Ein Tätigkeitswort","Verben beschreiben Tätigkeiten oder Vorgänge."],
+["Was ist ein Adjektiv?","Ein Eigenschaftswort","Adjektive beschreiben, wie etwas ist."],
+["Welcher Artikel gehört zu Tisch?","der","Es heißt der Tisch."],
+["Welcher Artikel gehört zu Blume?","die","Es heißt die Blume."],
+["Welcher Artikel gehört zu Fenster?","das","Es heißt das Fenster."],
+["Was ist die Mehrzahl von Haus?","Häuser","Die Mehrzahl von Haus lautet Häuser."],
+["Was ist die Mehrzahl von Kind?","Kinder","Die Mehrzahl von Kind lautet Kinder."],
+["Welches Wort ist ein Verb: schön, laufen oder blau?","laufen","Laufen ist eine Tätigkeit."],
+["Welches Wort ist ein Adjektiv: springen, freundlich oder Schule?","freundlich","Freundlich beschreibt eine Eigenschaft."],
+["Welches Wort ist ein Nomen: lesen, Hund oder schnell?","Hund","Hund ist ein Namenwort."],
+["Was ist die Grundform von ging?","gehen","Ging ist eine gebeugte Form von gehen."],
+["Was ist die Grundform von schrieb?","schreiben","Schrieb ist eine Form des Verbs schreiben."],
+["Welche Wortart ist schnell?","Adjektiv","Schnell beschreibt eine Eigenschaft oder Art und Weise."],
+["Welche Wortart ist spielen?","Verb","Spielen ist ein Tätigkeitswort."],
+["Welches Personalpronomen passt zu Maria?","sie","Maria kann durch das Pronomen sie ersetzt werden."],
+["Welches Personalpronomen passt zu Paul und Tom?","sie","Für mehrere Personen verwendet man hier sie."],
+["Was ist die erste Person Einzahl?","ich","Ich ist die erste Person Singular."],
+["Was ist die zweite Person Einzahl?","du","Du ist die zweite Person Singular."],
+["Was ist die dritte Person Einzahl?","er, sie oder es","Er, sie und es sind Pronomen der dritten Person."],
+["Welcher Fall antwortet auf die Frage Wer oder was?","Nominativ","Der Nominativ ist der erste Fall."],
+["Welcher Fall antwortet auf die Frage Wessen?","Genitiv","Der Genitiv zeigt häufig Zugehörigkeit."],
+["Welcher Fall antwortet auf die Frage Wem?","Dativ","Der Dativ ist der dritte Fall."],
+["Welcher Fall antwortet auf die Frage Wen oder was?","Akkusativ","Der Akkusativ ist der vierte Fall."],
+["Welches Wort ist eine Präposition: unter, Hund oder laufen?","unter","Unter ist ein Verhältniswort."],
+["Welches Wort ist eine Konjunktion: und, Baum oder groß?","und","Und verbindet Wörter oder Sätze."],
+["Was ist die Steigerung von groß?","größer, am größten","Adjektive können gesteigert werden."],
+["Was ist die erste Steigerungsform von schnell?","schneller","Die Vergleichsform von schnell ist schneller."],
+["Wie heißt die Mehrzahl von Maus?","Mäuse","Die Mehrzahl von Maus lautet Mäuse."],
+["Welche Wortart ist gestern?","Adverb","Gestern beschreibt, wann etwas geschah."]
 ],
-"Grammatik":[
-["She ___ a dog.",["have","has","are"],1,"Bei she verwendest du has."],
-["Mehrzahl von child?",["childs","children","childes"],1,"Die Mehrzahl lautet children."],
-["I ___ a student.",["am","is","are"],0,"Mit I verwendest du am."],
-["They ___ happy.",["is","am","are"],2,"Mit they verwendest du are."]
+
+"Rechtschreibung": [
+["Wie schreibt man das Wort richtig?","Fahrrad","Fahrrad schreibt man mit zwei r."],
+["Welches Wort ist richtig geschrieben?","nämlich","Nämlich wird mit h geschrieben."],
+["Wie schreibt man die Mehrzahl von Buch?","Bücher","Bücher schreibt man mit Umlaut."],
+["Welches Wort ist richtig?","Rhythmus","Rhythmus ist die richtige Schreibweise."],
+["Wie schreibt man das Gegenteil von laut?","leise","Leise ist das Gegenteil von laut."],
+["Welches Wort ist richtig geschrieben?","vielleicht","Vielleicht wird mit ie geschrieben."],
+["Wie schreibt man das Wort für eine Person, die malt?","Maler","Maler wird mit einem l geschrieben."],
+["Welches Wort ist richtig?","plötzlich","Plötzlich wird mit tz geschrieben."],
+["Wie schreibt man die Mehrzahl von Fuß?","Füße","Fuß wird in der Mehrzahl zu Füße."],
+["Welches Wort ist richtig geschrieben?","Abenteuer","Abenteuer ist die richtige Schreibweise."],
+["Wie schreibt man das Gegenteil von Anfang?","Ende","Ende ist das Gegenteil von Anfang."],
+["Welches Wort ist richtig?","dass","Dass schreibt man mit ss, wenn es eine Konjunktion ist."],
+["Welches Wort ist richtig?","seit","Seit verwendet man bei Zeitangaben."],
+["Welches Wort passt in: Ich bin ___ gestern hier.","seit","Bei einer Zeitangabe verwendet man seit."],
+["Wie schreibt man die Mehrzahl von Stadt?","Städte","Stadt wird zu Städte."],
+["Welches Wort ist richtig geschrieben?","nass","Nass schreibt man mit ss."],
+["Wie schreibt man das Wort für das Gegenteil von richtig?","falsch","Falsch ist die richtige Schreibweise."],
+["Welches Wort ist richtig?","Lieblingsessen","Lieblingsessen ist ein zusammengesetztes Nomen."],
+["Wie schreibt man die Mehrzahl von Apfel?","Äpfel","Apfel wird zu Äpfel."],
+["Welches Wort ist richtig geschrieben?","interessant","Interessant schreibt man mit zwei s."],
+["Wie schreibt man das Gegenteil von vergessen?","erinnern","Sich erinnern ist das Gegenteil von vergessen."],
+["Welches Wort ist richtig?","nützlich","Nützlich wird mit tz geschrieben."],
+["Wie schreibt man die Mehrzahl von Baum?","Bäume","Baum wird zu Bäume."],
+["Welches Wort ist richtig?","Geburtstag","Geburtstag schreibt man zusammen."],
+["Wie schreibt man das Wort für eine kleine Katze?","Kätzchen","Kätzchen schreibt man mit tz und chen."],
+["Welches Wort ist richtig geschrieben?","Schifffahrt","Schifffahrt schreibt man mit drei f."],
+["Wie schreibt man die Mehrzahl von Mauseloch?","Mauselöcher","Mauseloch wird zu Mauselöcher."],
+["Welches Wort ist richtig?","auf jeden Fall","Diese Wortgruppe schreibt man getrennt."],
+["Wie schreibt man das Gegenteil von freundlich?","unfreundlich","Die Vorsilbe un- bildet hier das Gegenteil."],
+["Welches Wort ist richtig geschrieben?","während","Während schreibt man mit h."]
 ],
-"Simple Present":[
-["He ___ football.",["play","plays","playing"],1,"Bei he bekommt das Verb meistens ein s."],
-["I ___ like tea.",["doesn't","don't","isn't"],1,"Bei I verwendest du don't."],
-["She ___ to school.",["go","goes","going"],1,"Bei she wird aus go die Form goes."],
-["We ___ English.",["learn","learns","learning"],0,"Bei we bleibt das Verb in der Grundform."]
+
+"Satzbau": [
+["Womit beginnt ein normaler Aussagesatz?","Mit einem großgeschriebenen Wort","Das erste Wort eines Satzes wird großgeschrieben."],
+["Welches Satzzeichen steht am Ende einer Frage?","Fragezeichen","Fragen enden mit einem Fragezeichen."],
+["Welches Satzzeichen steht meist am Ende einer Aussage?","Punkt","Ein Aussagesatz endet normalerweise mit einem Punkt."],
+["Was ist das Subjekt im Satz: Der Hund bellt laut?","Der Hund","Der Hund ist derjenige, der bellt."],
+["Was ist das Prädikat im Satz: Mia liest ein Buch?","liest","Das Prädikat enthält das Verb."],
+["Was ist das Objekt im Satz: Tom wirft den Ball?","den Ball","Den Ball ist das Akkusativobjekt."],
+["Welcher Satz ist eine Frage?","Wo wohnst du?","Eine Frage möchte eine Information erhalten."],
+["Welcher Satz ist ein Ausruf?","Das ist ja toll!","Ein Ausruf drückt ein starkes Gefühl aus."],
+["Was gehört in einen vollständigen Satz?","Ein finites Verb","Ein vollständiger Satz enthält normalerweise ein gebeugtes Verb."],
+["Welches Wort steht im Satz meist an zweiter Stelle: Heute spiele ich draußen?","spiele","Im Aussagesatz steht das finite Verb meist an zweiter Stelle."],
+["Was ist das Subjekt in: Die Kinder lachen?","Die Kinder","Die Kinder führen die Handlung aus."],
+["Was ist das Prädikat in: Der Vogel singt?","singt","Singt ist das Verb und damit das Prädikat."],
+["Welches Satzzeichen passt: Komm bitte her___","!","Ein Ausrufezeichen kann eine Aufforderung betonen."],
+["Welches Satzzeichen passt: Hast du Zeit___","?","Eine Frage endet mit einem Fragezeichen."],
+["Wie nennt man einen Satz, der etwas mitteilt?","Aussagesatz","Ein Aussagesatz informiert über etwas."],
+["Wie nennt man einen Satz, der etwas verlangt?","Aufforderungssatz","Ein Aufforderungssatz fordert jemanden zu etwas auf."],
+["Wie nennt man die Person oder Sache, über die der Satz etwas aussagt?","Subjekt","Das Subjekt ist der Satzgegenstand."],
+["Wie nennt man den Satzteil, der sagt, was geschieht?","Prädikat","Das Prädikat enthält die Satzaussage."],
+["Was ist das Subjekt in: Meine Schwester kocht Nudeln?","Meine Schwester","Meine Schwester führt die Handlung aus."],
+["Was ist das Prädikat in: Wir fahren morgen nach Berlin?","fahren","Fahren ist das Verb des Satzes."],
+["Was ist das Akkusativobjekt in: Lisa malt ein Bild?","ein Bild","Was malt Lisa? Ein Bild."],
+["Was ist das Dativobjekt in: Ben hilft seiner Mutter?","seiner Mutter","Wem hilft Ben? Seiner Mutter."],
+["Welcher Satz ist richtig?","Morgen gehe ich schwimmen.","Das Verb steht im Aussagesatz an zweiter Stelle."],
+["Wie nennt man einen Satz mit nur einem Hauptsatz?","Einfacher Satz","Ein einfacher Satz besteht aus einem Hauptsatz."],
+["Was verbindet die Wörter in: Anna und Ben spielen?","und","Und ist eine Konjunktion."],
+["Welches Wort leitet oft einen Nebensatz ein?","weil","Weil ist eine unterordnende Konjunktion."],
+["Wo steht das Verb im Nebensatz mit weil normalerweise?","Am Ende","Im Nebensatz steht das finite Verb normalerweise am Ende."],
+["Was ist das Subjekt in: Heute scheint die Sonne?","die Sonne","Die Sonne ist das Subjekt."],
+["Was ist das Prädikat in: Die Katze schläft auf dem Sofa?","schläft","Schläft ist das Prädikat."],
+["Welcher Satz ist eine Aufforderung?","Räum bitte dein Zimmer auf!","Der Satz fordert jemanden zu einer Handlung auf."]
 ]
 },
-Biologie:{
-"Tiere":[
-["Welches Tier ist ein Säugetier?",["Frosch","Delfin","Forelle"],1,"Der Delfin ist ein Säugetier."],
-["Womit atmen Fische?",["Lungen","Kiemen","Haut"],1,"Fische atmen mit Kiemen."],
-["Was fressen Pflanzenfresser?",["Pflanzen","Fleisch","Steine"],0,"Pflanzenfresser ernähren sich von Pflanzen."],
-["Welches Tier ist ein Insekt?",["Spinne","Biene","Regenwurm"],1,"Bienen gehören zu den Insekten."],
-["Wie viele Beine haben Insekten?",["4","6","8"],1,"Insekten haben sechs Beine."]
+
+"Englisch": {
+"Vokabeln": [
+["Was bedeutet apple?","Apfel","Apple bedeutet Apfel."],
+["Was bedeutet school?","Schule","School bedeutet Schule."],
+["Was bedeutet window?","Fenster","Window bedeutet Fenster."],
+["Was bedeutet friend?","Freund","Friend bedeutet Freund."],
+["Was bedeutet house?","Haus","House bedeutet Haus."],
+["Was bedeutet water?","Wasser","Water bedeutet Wasser."],
+["Was bedeutet beautiful?","schön","Beautiful bedeutet schön."],
+["Was bedeutet family?","Familie","Family bedeutet Familie."],
+["Was bedeutet breakfast?","Frühstück","Breakfast bedeutet Frühstück."],
+["Was bedeutet tomorrow?","morgen","Tomorrow bedeutet morgen."],
+["Was bedeutet yesterday?","gestern","Yesterday bedeutet gestern."],
+["Was bedeutet library?","Bibliothek","Library bedeutet Bibliothek."],
+["Was bedeutet bicycle?","Fahrrad","Bicycle bedeutet Fahrrad."],
+["Was bedeutet hungry?","hungrig","Hungry bedeutet hungrig."],
+["Was bedeutet thirsty?","durstig","Thirsty bedeutet durstig."],
+["Was bedeutet garden?","Garten","Garden bedeutet Garten."],
+["Was bedeutet mountain?","Berg","Mountain bedeutet Berg."],
+["Was bedeutet river?","Fluss","River bedeutet Fluss."],
+["Was bedeutet weather?","Wetter","Weather bedeutet Wetter."],
+["Was bedeutet holiday?","Ferien","Holiday bedeutet Ferien."],
+["Was bedeutet always?","immer","Always bedeutet immer."],
+["Was bedeutet sometimes?","manchmal","Sometimes bedeutet manchmal."],
+["Was bedeutet never?","niemals","Never bedeutet niemals."],
+["Was bedeutet expensive?","teuer","Expensive bedeutet teuer."],
+["Was bedeutet cheap?","billig","Cheap bedeutet billig."],
+["Was bedeutet quickly?","schnell","Quickly bedeutet schnell."],
+["Was bedeutet dangerous?","gefährlich","Dangerous bedeutet gefährlich."],
+["Was bedeutet to borrow?","ausleihen","To borrow bedeutet ausleihen."],
+["Was bedeutet to invite?","einladen","To invite bedeutet einladen."],
+["Was bedeutet homework?","Hausaufgaben","Homework bedeutet Hausaufgaben."]
 ],
-"Pflanzen":[
-["Was brauchen Pflanzen zur Fotosynthese?",["Licht, Wasser und CO₂","Nur Erde","Nur Sauerstoff"],0,"Pflanzen brauchen Licht, Wasser und Kohlenstoffdioxid."],
-["Welcher Teil nimmt Wasser auf?",["Blüte","Wurzel","Frucht"],1,"Die Wurzeln nehmen Wasser aus dem Boden auf."],
-["Welcher Pflanzenteil betreibt meistens Fotosynthese?",["Blatt","Wurzel","Frucht"],0,"In den Blättern findet ein großer Teil der Fotosynthese statt."],
-["Was entsteht bei der Fotosynthese unter anderem?",["Sauerstoff","Sand","Salz"],0,"Pflanzen geben bei der Fotosynthese Sauerstoff ab."],
-["Wozu dient die Blüte?",["Fortpflanzung","Wasseraufnahme","Festhalten im Boden"],0,"Blüten dienen der Fortpflanzung."]
+
+"Grammatik": [
+["Wie lautet die Mehrzahl von child?","children","Child wird zu children."],
+["Wie lautet die Mehrzahl von mouse?","mice","Mouse wird zu mice."],
+["Welches Wort ist ein Pronomen: he, table oder green?","he","He ist ein Personalpronomen."],
+["Was ist die Vergangenheitsform von go?","went","Go wird in der Vergangenheit zu went."],
+["Was ist die Vergangenheitsform von see?","saw","See wird zu saw."],
+["Was ist die Mehrzahl von box?","boxes","Bei box wird es zu boxes."],
+["Was ist die Mehrzahl von baby?","babies","Bei baby wird y zu ies."],
+["Welches Wort ist ein Artikel: the, run oder blue?","the","The ist ein bestimmter Artikel."],
+["Was ist das Gegenteil von hot?","cold","Cold bedeutet kalt."],
+["Was ist das Gegenteil von young?","old","Old bedeutet alt."],
+["Wie lautet die Einzahl von feet?","foot","Feet ist die Mehrzahl von foot."],
+["Wie lautet die Einzahl von teeth?","tooth","Teeth ist die Mehrzahl von tooth."],
+["Welches Hilfsverb gehört zu he: do oder does?","does","Bei he verwendet man does."],
+["Welches Hilfsverb gehört zu they: do oder does?","do","Bei they verwendet man do."],
+["Was ist die Vergangenheitsform von play?","played","Bei regelmäßigen Verben kommt -ed hinzu."],
+["Was ist die Vergangenheitsform von have?","had","Have wird zu had."],
+["Welches Wort ist ein Adjektiv: happy, jump oder book?","happy","Happy beschreibt eine Eigenschaft."],
+["Was bedeutet the biggest?","der größte","Biggest ist die höchste Steigerungsform von big."],
+["Wie lautet die Steigerung von small?","smaller, smallest","Small wird zu smaller und smallest."],
+["Welches Wort ist ein Verb: swim, blue oder house?","swim","Swim ist ein Tätigkeitswort."],
+["Was ist die Mehrzahl von man?","men","Man wird zu men."],
+["Was ist die Mehrzahl von woman?","women","Woman wird zu women."],
+["Was ist die Vergangenheitsform von eat?","ate","Eat wird zu ate."],
+["Was ist die Vergangenheitsform von drink?","drank","Drink wird zu drank."],
+["Welches Possessivpronomen gehört zu I?","my","I gehört zu my."],
+["Welches Possessivpronomen gehört zu she?","her","She gehört zu her."],
+["Welches Wort bedeutet wir?","we","We bedeutet wir."],
+["Welches Wort bedeutet sie (Mehrzahl)?","they","They bedeutet sie oder ihnen in der Mehrzahl."],
+["Wie lautet die Steigerung von good?","better, best","Good ist unregelmäßig: better, best."],
+["Was ist die Mehrzahl von foot?","feet","Foot wird zu feet."]
+],
+
+"Simple Present": [
+["Ergänze: I ___ football. (play)","play","Bei I bleibt das Verb in der Grundform."],
+["Ergänze: She ___ tennis. (play)","plays","Bei he, she und it kommt meistens ein s hinzu."],
+["Ergänze: He ___ to school. (go)","goes","Go wird bei he zu goes."],
+["Ergänze: They ___ happy. (be)","are","Bei they verwendet man are."],
+["Ergänze: I ___ a dog. (have)","have","Bei I verwendet man have."],
+["Ergänze: Tom ___ a bike. (have)","has","Bei he, she und it wird have zu has."],
+["Ergänze: We ___ English. (learn)","learn","Bei we steht das Verb in der Grundform."],
+["Ergänze: My cat ___ milk. (like)","likes","Bei he, she und it kommt ein s hinzu."],
+["Ergänze: You ___ very fast. (run)","run","Bei you bleibt das Verb in der Grundform."],
+["Ergänze: Anna ___ TV. (watch)","watches","Bei watch kommt -es hinzu."],
+["Wie bildet man eine Verneinung mit I?","I do not","Bei I verwendet man do not."],
+["Wie bildet man eine Verneinung mit she?","She does not","Bei she verwendet man does not."],
+["Ergänze: He ___ like pizza. (not)","does not","Bei he verwendet man doesn't."],
+["Ergänze: We ___ play tennis. (not)","do not","Bei we verwendet man don't."],
+["Wie lautet die Frage: You like cats?","Do you like cats?","Bei you steht do am Satzanfang."],
+["Wie lautet die Frage: She plays football?","Does she play football?","Bei she steht does am Satzanfang."],
+["Ergänze: The sun ___ in the east. (rise)","rises","Bei the sun kommt ein s hinzu."],
+["Ergänze: My parents ___ in Berlin. (live)","live","Parents ist Mehrzahl, deshalb Grundform."],
+["Ergänze: Peter ___ his homework. (do)","does","Do wird bei Peter zu does."],
+["Ergänze: The baby ___ a lot. (cry)","cries","Bei cry wird y zu ies."],
+["Welche Zeitform beschreibt Gewohnheiten?","Simple Present","Das Simple Present beschreibt regelmäßige Handlungen."],
+["Welches Signalwort passt oft zum Simple Present?","always","Always bedeutet immer und zeigt häufig eine Gewohnheit."],
+["Was bedeutet usually?","gewöhnlich","Usually ist ein typisches Signalwort."],
+["Was bedeutet never?","niemals","Never bedeutet niemals."],
+["Ergänze: I ___ breakfast every day. (eat)","eat","Bei I steht die Grundform."],
+["Ergänze: Lisa ___ to music. (listen)","listens","Bei Lisa kommt ein s hinzu."],
+["Ergänze: My brother ___ at seven. (get up)","gets up","Bei my brother kommt ein s hinzu."],
+["Ergänze: Birds ___ in the sky. (fly)","fly","Bei birds handelt es sich um die Mehrzahl."],
+["Ergänze: He ___ his teeth every morning. (brush)","brushes","Bei brush kommt -es hinzu."],
+["Ergänze: I ___ not understand. (do)","do","Die Verneinung lautet I do not understand."]
 ]
 },
-Geschichte:{
-"Altes Ägypten":[
-["An welchem Fluss lag das alte Ägypten?",["Nil","Rhein","Donau"],0,"Das alte Ägypten entstand am Nil."],
-["Wie hieß die Schrift der Ägypter?",["Runen","Hieroglyphen","Latein"],1,"Die Bildzeichen nennt man Hieroglyphen."],
-["Wie hießen die Herrscher Ägyptens?",["Ritter","Pharaonen","Kaiser"],1,"Die Herrscher hießen Pharaonen."],
-["Wozu dienten Pyramiden?",["Als Grabstätten","Als Schulen","Als Häfen"],0,"Pyramiden dienten unter anderem als Grabstätten."]
+
+"Biologie": {
+"Tiere": [
+["Welches Tier ist ein Säugetier?","Hund","Hunde bekommen Milch von ihrer Mutter."],
+["Welches Tier legt Eier?","Huhn","Hühner legen Eier."],
+["Wie atmen Fische?","Mit Kiemen","Fische nehmen Sauerstoff aus dem Wasser über ihre Kiemen auf."],
+["Wie nennt man Tiere, die nur Pflanzen fressen?","Pflanzenfresser","Pflanzenfresser ernähren sich von Pflanzen."],
+["Wie nennt man Tiere, die andere Tiere fressen?","Fleischfresser","Fleischfresser ernähren sich von anderen Tieren."],
+["Wie nennt man Tiere, die Pflanzen und Fleisch fressen?","Allesfresser","Allesfresser nutzen verschiedene Nahrungsquellen."],
+["Welches Tier hält Winterschlaf?","Igel","Igel halten in der kalten Jahreszeit Winterschlaf."],
+["Wie nennt man den Lebensraum eines Tieres?","Habitat","Ein Habitat ist der natürliche Lebensraum."],
+["Welches Tier ist ein Insekt?","Biene","Bienen haben sechs Beine."],
+["Wie viele Beine hat eine Spinne?","8","Spinnen besitzen acht Beine."],
+["Wie viele Beine hat ein Insekt?","6","Insekten haben sechs Beine."],
+["Welches Tier ist ein Amphibium?","Frosch","Frösche gehören zu den Amphibien."],
+["Wie nennt man die Entwicklung vom Ei zum Schmetterling?","Metamorphose","Der Schmetterling durchläuft eine vollständige Verwandlung."],
+["Was frisst ein Koala hauptsächlich?","Eukalyptusblätter","Koalas ernähren sich vor allem von Eukalyptus."],
+["Welches Tier ist nachtaktiv?","Fledermaus","Viele Fledermäuse sind nachts unterwegs."],
+["Wie nennt man die Körperbedeckung eines Vogels?","Federn","Federn helfen beim Fliegen und Wärmen."],
+["Welches Tier kann seine Farbe zur Tarnung ändern?","Chamäleon","Chamäleons können ihre Hautfarbe verändern."],
+["Wie nennt man ein Tier, das seine Körpertemperatur nicht selbst konstant hält?","Wechselwarmes Tier","Wechselwarme Tiere sind von der Umgebungstemperatur abhängig."],
+["Was ist ein Raubtier?","Ein Tier, das andere Tiere jagt","Raubtiere ernähren sich von Beutetieren."],
+["Welches Tier baut einen Damm?","Biber","Biber verwenden Äste und andere Materialien für Dämme."],
+["Wie nennt man die Gruppe von Wölfen?","Rudel","Wölfe leben häufig in Rudeln."],
+["Welches Tier produziert Honig?","Honigbiene","Honigbienen stellen Honig her."],
+["Welches Tier hat einen Panzer?","Schildkröte","Der Panzer schützt den Körper der Schildkröte."],
+["Welches Tier ist ein Beuteltier?","Känguru","Kängurus gehören zu den Beuteltieren."],
+["Wie nennt man die Jungtiere eines Frosches?","Kaulquappen","Kaulquappen leben zunächst im Wasser."],
+["Welches Tier hat acht Arme?","Krake","Kraken sind Kopffüßer mit acht Armen."],
+["Welches Tier ist das größte Säugetier?","Blauwal","Der Blauwal ist das größte bekannte Tier."],
+["Welches Tier kann fliegen, obwohl es ein Säugetier ist?","Fledermaus","Fledermäuse sind die einzigen Säugetiere mit aktivem Flug."],
+["Was brauchen Tiere zum Leben?","Wasser, Nahrung und Sauerstoff","Lebewesen benötigen grundlegende Lebensbedingungen."],
+["Wie nennt man Tiere, die im Wasser und an Land leben können?","Amphibien","Amphibien können verschiedene Lebensräume nutzen."]
 ],
-"Mittelalter":[
-["Wozu dienten Burgen?",["Schutz und Wohnsitz","Flughafen","Fabrik"],0,"Burgen waren Wohnsitze und dienten der Verteidigung."],
-["Wie nennt man einen Kämpfer zu Pferd?",["Ritter","Pharao","Händler"],0,"Ritter waren bewaffnete Kämpfer."],
-["Wer arbeitete häufig auf dem Land?",["Bauern","Pharaonen","Seefahrer"],0,"Bauern arbeiteten auf dem Land."],
-["Was war eine Burg?",["Eine befestigte Anlage","Ein Schiff","Ein Marktstand"],0,"Burgen waren befestigte Anlagen."]
+
+"Pflanzen": [
+["Welcher Pflanzenteil nimmt Wasser aus dem Boden auf?","Wurzel","Die Wurzel nimmt Wasser und Mineralstoffe auf."],
+["Welcher Pflanzenteil trägt meistens die Blätter?","Stängel","Der Stängel trägt Blätter und Blüten."],
+["Wo findet bei vielen Pflanzen die Fotosynthese statt?","In den Blättern","Die Blätter enthalten dafür Chlorophyll."],
+["Was brauchen Pflanzen für die Fotosynthese?","Licht, Wasser und Kohlenstoffdioxid","Diese Stoffe und Licht ermöglichen die Fotosynthese."],
+["Welches Gas geben Pflanzen bei der Fotosynthese ab?","Sauerstoff","Bei der Fotosynthese entsteht Sauerstoff."],
+["Welcher Stoff macht Blätter grün?","Chlorophyll","Chlorophyll ist der grüne Farbstoff."],
+["Welche Aufgabe haben Blüten?","Sie dienen der Fortpflanzung","Aus Blüten können nach der Befruchtung Samen und Früchte entstehen."],
+["Was entsteht aus einer befruchteten Blüte häufig?","Eine Frucht","Viele Blüten entwickeln sich zu Früchten."],
+["Welcher Pflanzenteil hält die Pflanze im Boden fest?","Wurzel","Die Wurzeln verankern die Pflanze."],
+["Was ist ein Samen?","Eine Anlage für eine neue Pflanze","Aus einem Samen kann eine neue Pflanze wachsen."],
+["Was benötigt ein Samen zum Keimen?","Wasser, Wärme und Sauerstoff","Diese Bedingungen unterstützen die Keimung."],
+["Wie nennt man den Vorgang, bei dem eine Pflanze Nahrung herstellt?","Fotosynthese","Bei der Fotosynthese stellt die Pflanze energiereiche Stoffe her."],
+["Welche Pflanze ist ein Nadelbaum?","Fichte","Die Fichte besitzt Nadeln."],
+["Welcher Baum trägt Eicheln?","Eiche","Eicheln sind die Früchte der Eiche."],
+["Welcher Baum trägt Kastanien?","Kastanie","Kastanien wachsen am Kastanienbaum."],
+["Wie nennt man Pflanzen, die mehrere Jahre leben?","Mehrjährige Pflanzen","Mehrjährige Pflanzen leben länger als zwei Jahre."],
+["Was ist eine Laubpflanze?","Eine Pflanze mit Laubblättern","Laubpflanzen besitzen meist breite Blätter."],
+["Was passiert im Herbst mit vielen Laubbäumen?","Sie verlieren ihre Blätter","Viele Laubbäume werfen im Herbst ihre Blätter ab."],
+["Wie nennt man die Bestäubung durch Insekten?","Insektenbestäubung","Insekten übertragen dabei Blütenstaub."],
+["Welcher Teil einer Blüte enthält oft den Blütenstaub?","Staubbeutel","Im Staubbeutel befindet sich der Pollen."],
+["Was ist Pollen?","Blütenstaub","Pollen enthält die männlichen Keimzellen der Blütenpflanze."],
+["Welche Aufgabe hat die Frucht einer Pflanze?","Sie schützt und verbreitet Samen","Früchte helfen bei der Samenverbreitung."],
+["Welche Pflanze ist ein Frühblüher?","Schneeglöckchen","Schneeglöckchen blühen oft schon früh im Jahr."],
+["Was ist ein Kaktus?","Eine wasserspeichernde Pflanze","Kakteen sind an trockene Lebensräume angepasst."],
+["Warum haben Kakteen Dornen?","Sie schützen die Pflanze und verringern Wasserverlust","Dornen sind umgebildete Blätter."],
+["Was nehmen Pflanzen über ihre Blätter aus der Luft auf?","Kohlenstoffdioxid","Kohlenstoffdioxid wird für die Fotosynthese benötigt."],
+["Was transportiert der Stängel?","Wasser und Nährstoffe","Der Stängel verbindet Wurzeln und Blätter."],
+["Wie nennt man das Wachsen eines Samens?","Keimung","Bei der Keimung entwickelt sich eine junge Pflanze."],
+["Welche Pflanze bildet Erdbeeren?","Erdbeerpflanze","Erdbeeren sind die Früchte der Erdbeerpflanze."],
+["Warum sind Pflanzen wichtig für Menschen und Tiere?","Sie liefern Nahrung und Sauerstoff","Pflanzen sind eine wichtige Grundlage vieler Nahrungsketten."]
 ]
 },
-Geografie:{
-"Europa – Länder und Hauptstädte":[
-["Was ist die Hauptstadt von Spanien?",["Rom","Madrid","Paris"],1,"Madrid ist die Hauptstadt von Spanien."],
-["Was ist die Hauptstadt von Österreich?",["Wien","Bern","Berlin"],0,"Wien ist die Hauptstadt von Österreich."],
-["Was ist die Hauptstadt von Frankreich?",["Paris","London","Lissabon"],0,"Paris ist die Hauptstadt von Frankreich."],
-["Was ist die Hauptstadt von Italien?",["Athen","Rom","Madrid"],1,"Rom ist die Hauptstadt von Italien."],
-["Was ist die Hauptstadt von Polen?",["Prag","Warschau","Budapest"],1,"Warschau ist die Hauptstadt von Polen."],
-["Was ist die Hauptstadt von Griechenland?",["Athen","Oslo","Bern"],0,"Athen ist die Hauptstadt von Griechenland."],
-["Was ist die Hauptstadt von Portugal?",["Lissabon","Dublin","Wien"],0,"Lissabon ist die Hauptstadt von Portugal."],
-["Was ist die Hauptstadt von Norwegen?",["Stockholm","Oslo","Helsinki"],1,"Oslo ist die Hauptstadt von Norwegen."],
-["Was ist die Hauptstadt von Schweden?",["Kopenhagen","Stockholm","Oslo"],1,"Stockholm ist die Hauptstadt von Schweden."],
-["Was ist die Hauptstadt von Tschechien?",["Prag","Warschau","Rom"],0,"Prag ist die Hauptstadt von Tschechien."],
-["In welchem Land liegt Berlin?",["Österreich","Deutschland","Schweiz"],1,"Berlin ist die Hauptstadt von Deutschland."],
-["Welches Land sieht auf der Karte aus wie ein Stiefel?",["Italien","Norwegen","Irland"],0,"Italien hat die typische Stiefelform."]
+
+"Geschichte": {
+"Altes Ägypten": [
+["An welchem Fluss lag das Alte Ägypten?","Nil","Der Nil war die Lebensader des Alten Ägyptens."],
+["Wie nennt man die Herrscher im Alten Ägypten?","Pharaonen","Pharaonen waren die Könige Ägyptens."],
+["Wie nennt man die Schriftzeichen der Ägypter?","Hieroglyphen","Hieroglyphen waren die Bildzeichen der Ägypter."],
+["Wozu dienten die Pyramiden?","Als Grabstätten für Pharaonen","Pyramiden waren monumentale Königsgräber."],
+["Wie nennt man einen einbalsamierten Toten?","Mumie","Die Ägypter konservierten Verstorbene als Mumien."],
+["Welche Pflanze nutzten die Ägypter zur Papierherstellung?","Papyrus","Aus Papyrus stellte man Schreibmaterial her."],
+["Was war der Nil für die Landwirtschaft?","Eine wichtige Wasserquelle","Die Überschwemmungen machten Felder fruchtbar."],
+["Wie nennt man die fruchtbare Erde am Nil?","Schwarzes Land","Der fruchtbare Boden wurde so genannt."],
+["Was war die Aufgabe eines Schreibers?","Schreiben und Verwalten","Schreiber hielten wichtige Informationen fest."],
+["Welche Tiere wurden im Alten Ägypten verehrt?","Zum Beispiel Katzen","Katzen hatten im Alten Ägypten eine besondere Bedeutung."],
+["Wer war Kleopatra?","Eine Königin Ägyptens","Kleopatra war eine bekannte Herrscherin."],
+["Was ist eine Pyramide?","Ein monumentales Bauwerk mit quadratischer Grundfläche","Die ägyptischen Pyramiden dienten als Grabstätten."],
+["Welche Farbe hatte das fruchtbare Land am Nil in der ägyptischen Bezeichnung?","Schwarz","Der dunkle Schlamm machte den Boden fruchtbar."],
+["Warum war der Nil so wichtig?","Er brachte Wasser und fruchtbaren Schlamm","Ohne den Nil wäre Landwirtschaft kaum möglich gewesen."],
+["Was bedeutet Archäologie?","Die Erforschung vergangener Kulturen anhand von Funden","Archäologen untersuchen unter anderem alte Bauwerke und Gegenstände."],
+["Womit schrieben die Ägypter auf Papyrus?","Mit Schreibgeräten und Tinte","Sie nutzten Tinte und Schreibgeräte."],
+["Wer baute die Pyramiden?","Ägyptische Arbeiter und Handwerker","Viele Arbeiter waren am Bau beteiligt."],
+["Wie nennt man einen Tempel im Alten Ägypten?","Tempel","Tempel waren wichtige religiöse Orte."],
+["Welche Tiere zogen häufig Wagen oder Lasten?","Ochsen","Ochsen wurden als Zugtiere eingesetzt."],
+["Was glaubten die Ägypter über das Leben nach dem Tod?","Es gab ein Leben nach dem Tod","Der Totenkult spielte eine große Rolle."],
+["Was ist ein Sarkophag?","Ein steinerner Sarg","Sarkophage dienten zur Aufbewahrung von Mumien."],
+["Was war die Aufgabe eines Wesirs?","Er unterstützte den Pharao bei der Regierung","Der Wesir war ein hoher Beamter."],
+["Wie nennt man das Gebiet am Unterlauf des Nils mit vielen Flussarmen?","Nildelta","Dort teilt sich der Nil in mehrere Arme."],
+["Was ist ein Obelisk?","Eine hohe, schmale Steinsäule","Obelisken wurden oft aus einem Steinblock gefertigt."],
+["Welche Wüste liegt westlich des Nils?","Libysche Wüste","Sie gehört zur Sahara."],
+["Was war die Bedeutung der jährlichen Nilüberschwemmung?","Sie machte die Felder fruchtbar","Der Nil hinterließ nährstoffreichen Schlamm."],
+["Welcher Gott wurde oft mit einem Schakalkopf dargestellt?","Anubis","Anubis war mit Mumifizierung und Totenkult verbunden."],
+["Welcher Gott wurde oft mit einem Falkenkopf dargestellt?","Horus","Horus war ein bedeutender ägyptischer Gott."],
+["Wie nennt man die Wissenschaft von alten Schriften?","Paläografie","Sie beschäftigt sich mit der Erforschung historischer Schriftformen."],
+["Was ist ein Grabbeigabe?","Ein Gegenstand, der mit einem Toten bestattet wurde","Grabbeigaben sollten den Verstorbenen im Jenseits begleiten."]
 ],
-"Bekannte Gebirge Europas":[
-["Wie heißt ein großes Gebirge in Mitteleuropa?",["Alpen","Harz","Schwarzwald"],0,"Die Alpen sind ein großes Gebirge in Mitteleuropa."],
-["In welchem Gebirge liegt der Mont Blanc?",["Alpen","Pyrenäen","Karpaten"],0,"Der Mont Blanc liegt in den Alpen."],
-["Zwischen welchen Ländern liegen die Pyrenäen?",["Deutschland und Polen","Frankreich und Spanien","Italien und Österreich"],1,"Die Pyrenäen liegen zwischen Frankreich und Spanien."],
-["In welchem Land liegen die norwegischen Fjorde?",["Norwegen","Ungarn","Portugal"],0,"Norwegen ist für seine Fjorde bekannt."],
-["Wo liegen die Karpaten?",["In Mittel- und Osteuropa","In Afrika","In Südamerika"],0,"Die Karpaten liegen in Mittel- und Osteuropa."],
-["Welches Gebirge liegt zwischen Frankreich und Spanien?",["Alpen","Pyrenäen","Ural"],1,"Die Pyrenäen bilden einen Teil der Grenze."],
-["Wie heißt eine Gebirgsregion in Südosteuropa?",["Balkan","Harz","Eifel"],0,"Der Balkan liegt in Südosteuropa."]
+
+"Mittelalter": [
+["In welchem Zeitraum lag das Mittelalter ungefähr?","Etwa 500 bis 1500","Das Mittelalter wird ungefähr zwischen Antike und Neuzeit eingeordnet."],
+["Wie nennt man einen Herrscher über ein Königreich?","König","Ein König regierte ein Königreich."],
+["Wie nennt man eine befestigte Wohnanlage eines Ritters?","Burg","Burgen dienten als Wohn- und Schutzanlagen."],
+["Wer lebte häufig auf einer Burg?","Adlige und Ritter","Burgen waren oft Wohnsitze des Adels."],
+["Was war die Aufgabe eines Ritters?","Er sollte kämpfen und seinen Herrn schützen","Ritter waren bewaffnete Krieger im Dienst eines Herrn."],
+["Wie nennt man einen Bauern, der an einen Grundherrn gebunden war?","Höriger","Hörige waren in ihrer Freiheit eingeschränkt."],
+["Was war ein Kloster?","Eine religiöse Gemeinschaft","Mönche oder Nonnen lebten dort."],
+["Wie nennt man die Schriftgelehrten im Kloster?","Mönche","Mönche kopierten und bewahrten viele Schriften."],
+["Was war ein Lehnsherr?","Ein Herr, der Land als Lehen vergab","Ein Lehnsherr vergab Land oder Rechte."],
+["Was ist ein Lehen?","Land oder ein Recht, das verliehen wurde","Ein Lehen wurde meist mit Pflichten verbunden."],
+["Wie nennt man einen Handwerker, der Schuhe herstellt?","Schuhmacher","Schuhmacher fertigten Schuhe an."],
+["Wo fanden im Mittelalter oft Märkte statt?","In Städten","Märkte waren wichtige Handelsplätze."],
+["Was war eine Zunft?","Ein Zusammenschluss von Handwerkern","Zünfte regelten das Handwerk in einer Stadt."],
+["Wie nennt man die Bewohner einer Stadt?","Stadtbürger","Stadtbürger besaßen bestimmte Rechte und Pflichten."],
+["Was war ein Minnesänger?","Ein Dichter und Sänger von Liebesliedern","Minnesänger trugen ihre Lieder vor."],
+["Welche Krankheit verbreitete sich im 14. Jahrhundert stark in Europa?","Die Pest","Die Pest führte zu vielen Todesfällen."],
+["Wie nennt man die Zeit der Pestepidemie im 14. Jahrhundert häufig?","Schwarzer Tod","So wird die große Pestepidemie oft bezeichnet."],
+["Was war ein Turnier?","Ein Wettkampf von Rittern","Ritter maßen sich unter anderem im Reiten und Kämpfen."],
+["Was ist ein Burggraben?","Ein Graben um eine Burg","Er erschwerte Angriffe auf die Burg."],
+["Was ist eine Zugbrücke?","Eine bewegliche Brücke","Sie konnte hochgezogen werden."],
+["Wie nennt man den obersten Teil eines Burgturms?","Turmspitze","Die Turmspitze bildet den oberen Abschluss."],
+["Was war die Aufgabe eines Bauern im Mittelalter?","Lebensmittel anbauen und Tiere versorgen","Die Landwirtschaft war sehr wichtig."],
+["Was bedeutet Feudalismus?","Eine Gesellschaftsordnung mit Lehen und gegenseitigen Pflichten","Herrschaft und Landbesitz waren miteinander verbunden."],
+["Wer war Karl der Große?","Ein bedeutender fränkischer König und Kaiser","Er wurde im Jahr 800 zum Kaiser gekrönt."],
+["Was war eine Stadtmauer?","Eine Befestigung rund um eine Stadt","Sie sollte die Stadt schützen."],
+["Wie nennt man einen fahrenden Händler?","Kaufmann","Kaufleute transportierten und verkauften Waren."],
+["Was war ein Handwerkerlehrling?","Ein Anfänger, der ein Handwerk erlernte","Lehrlinge lernten bei einem Meister."],
+["Was ist ein Wappen?","Ein Erkennungszeichen einer Familie oder eines Herrschers","Wappen zeigten bestimmte Symbole und Farben."],
+["Wie nennt man die Zeit nach dem Mittelalter?","Neuzeit","Die Neuzeit folgt auf das Mittelalter."],
+["Was war die wichtigste Energiequelle für die Landwirtschaft?","Menschliche und tierische Arbeitskraft","Menschen und Tiere erledigten viele Arbeiten auf den Feldern."]
+]
+},
+
+"Geografie": {
+"Europa – Länder und Hauptstädte": [
+["Was ist die Hauptstadt von Deutschland?","Berlin","Berlin ist die Hauptstadt Deutschlands."],
+["Was ist die Hauptstadt von Frankreich?","Paris","Paris ist die Hauptstadt Frankreichs."],
+["Was ist die Hauptstadt von Italien?","Rom","Rom ist die Hauptstadt Italiens."],
+["Was ist die Hauptstadt von Spanien?","Madrid","Madrid ist die Hauptstadt Spaniens."],
+["Was ist die Hauptstadt von Portugal?","Lissabon","Lissabon ist die Hauptstadt Portugals."],
+["Was ist die Hauptstadt von Österreich?","Wien","Wien ist die Hauptstadt Österreichs."],
+["Was ist die Hauptstadt der Schweiz?","Bern","Bern ist die Bundesstadt der Schweiz."],
+["Was ist die Hauptstadt von Polen?","Warschau","Warschau ist die Hauptstadt Polens."],
+["Was ist die Hauptstadt von Tschechien?","Prag","Prag ist die Hauptstadt Tschechiens."],
+["Was ist die Hauptstadt von Griechenland?","Athen","Athen ist die Hauptstadt Griechenlands."],
+["Was ist die Hauptstadt von Norwegen?","Oslo","Oslo ist die Hauptstadt Norwegens."],
+["Was ist die Hauptstadt von Schweden?","Stockholm","Stockholm ist die Hauptstadt Schwedens."],
+["Was ist die Hauptstadt von Finnland?","Helsinki","Helsinki ist die Hauptstadt Finnlands."],
+["Was ist die Hauptstadt von Dänemark?","Kopenhagen","Kopenhagen ist die Hauptstadt Dänemarks."],
+["Was ist die Hauptstadt von Irland?","Dublin","Dublin ist die Hauptstadt Irlands."],
+["Was ist die Hauptstadt von Island?","Reykjavík","Reykjavík ist die Hauptstadt Islands."],
+["Was ist die Hauptstadt von Belgien?","Brüssel","Brüssel ist die Hauptstadt Belgiens."],
+["Was ist die Hauptstadt der Niederlande?","Amsterdam","Amsterdam ist die Hauptstadt der Niederlande."],
+["Was ist die Hauptstadt von Ungarn?","Budapest","Budapest ist die Hauptstadt Ungarns."],
+["Was ist die Hauptstadt von Rumänien?","Bukarest","Bukarest ist die Hauptstadt Rumäniens."],
+["Was ist die Hauptstadt von Bulgarien?","Sofia","Sofia ist die Hauptstadt Bulgariens."],
+["Was ist die Hauptstadt von Kroatien?","Zagreb","Zagreb ist die Hauptstadt Kroatiens."],
+["Was ist die Hauptstadt von Serbien?","Belgrad","Belgrad ist die Hauptstadt Serbiens."],
+["Was ist die Hauptstadt der Slowakei?","Bratislava","Bratislava ist die Hauptstadt der Slowakei."],
+["Was ist die Hauptstadt von Slowenien?","Ljubljana","Ljubljana ist die Hauptstadt Sloweniens."],
+["Was ist die Hauptstadt von Estland?","Tallinn","Tallinn ist die Hauptstadt Estlands."],
+["Was ist die Hauptstadt von Lettland?","Riga","Riga ist die Hauptstadt Lettlands."],
+["Was ist die Hauptstadt von Litauen?","Vilnius","Vilnius ist die Hauptstadt Litauens."],
+["Was ist die Hauptstadt von Luxemburg?","Luxemburg","Luxemburg ist die Hauptstadt des Landes."],
+["Was ist die Hauptstadt von Albanien?","Tirana","Tirana ist die Hauptstadt Albaniens."]
 ],
-"Bekannte Flüsse Europas":[
-["Wie heißt der längste Fluss Europas?",["Donau","Wolga","Rhein"],1,"Die Wolga ist der längste Fluss Europas."],
-["Welcher Fluss fließt durch Budapest?",["Rhein","Donau","Seine"],1,"Die Donau fließt durch Budapest."],
-["Welcher Fluss fließt durch Paris?",["Themse","Rhein","Seine"],2,"Die Seine fließt durch Paris."],
-["Welcher Fluss fließt durch London?",["Themse","Donau","Po"],0,"Die Themse fließt durch London."],
-["Welcher Fluss fließt durch Köln?",["Seine","Rhein","Wolga"],1,"Der Rhein fließt durch Köln."],
-["Welcher Fluss fließt durch Rom?",["Tiber","Donau","Elbe"],0,"Der Tiber fließt durch Rom."],
-["Welcher Fluss fließt durch Wien?",["Donau","Themse","Seine"],0,"Die Donau fließt durch Wien."],
-["Welcher Fluss fließt durch Deutschland und die Niederlande?",["Rhein","Ebro","Tajo"],0,"Der Rhein fließt durch Deutschland und die Niederlande."],
-["Welcher Fluss mündet ins Schwarze Meer?",["Donau","Themse","Seine"],0,"Die Donau mündet ins Schwarze Meer."]
+
+"Bekannte Gebirge Europas": [
+["Wie heißt das höchste Gebirge Europas?","Kaukasus","Der Kaukasus liegt zwischen Europa und Asien."],
+["Wie heißt der höchste Berg der Alpen?","Mont Blanc","Der Mont Blanc ist der höchste Berg der Alpen."],
+["In welchem Gebirge liegt der Großglockner?","Alpen","Der Großglockner liegt in den österreichischen Alpen."],
+["In welchem Land liegen die Pyrenäen teilweise?","Spanien","Die Pyrenäen liegen zwischen Spanien und Frankreich."],
+["Welche Gebirgskette bildet einen Teil der Grenze zwischen Frankreich und Spanien?","Pyrenäen","Die Pyrenäen verlaufen entlang der Grenze."],
+["In welchem Land liegen die Karpaten unter anderem?","Rumänien","Die Karpaten verlaufen durch mehrere Länder, darunter Rumänien."],
+["Wie heißt das Gebirge in Norwegen und Schweden?","Skandinavisches Gebirge","Es erstreckt sich entlang der skandinavischen Halbinsel."],
+["Welches Gebirge liegt in Deutschland und Tschechien?","Erzgebirge","Das Erzgebirge liegt an der Grenze zwischen beiden Ländern."],
+["In welchem Gebirge liegt die Zugspitze?","Alpen","Die Zugspitze gehört zu den Alpen."],
+["Wie heißt das Gebirge im Osten Europas?","Ural","Der Ural gilt häufig als Grenze zwischen Europa und Asien."],
+["In welchem Land liegt der Olymp?","Griechenland","Der Olymp ist ein bekanntes Gebirge in Griechenland."],
+["Welches Gebirge liegt in der Slowakei?","Hohe Tatra","Die Hohe Tatra gehört zu den Karpaten."],
+["Wie heißt das Gebirge im Süden Frankreichs?","Alpen","Die französischen Alpen liegen im Südosten Frankreichs."],
+["Welches Gebirge liegt zwischen Schwarzem Meer und Kaspischem Meer?","Kaukasus","Der Kaukasus liegt zwischen diesen beiden Meeren."],
+["Wie nennt man die Berge in Süddeutschland?","Alpen","Die Alpen reichen bis nach Bayern."],
+["In welchem Gebirge liegt der höchste Berg Deutschlands?","Alpen","Die Zugspitze liegt in den Alpen."],
+["Wie heißt der höchste Berg Deutschlands?","Zugspitze","Die Zugspitze ist 2.962 Meter hoch."],
+["Welches Gebirge liegt in Norditalien?","Dolomiten","Die Dolomiten sind Teil der südlichen Kalkalpen."],
+["Welche Gebirge liegen in der Schweiz?","Alpen und Jura","Beide Gebirge prägen die Schweizer Landschaft."],
+["Wie heißt das Gebirge in Schottland?","Grampian Mountains","Die Grampian Mountains liegen in Schottland."],
+["In welchem Gebirge liegt der Berg Triglav?","Julische Alpen","Der Triglav ist der höchste Berg Sloweniens."],
+["Welches Gebirge liegt in Bulgarien?","Balkangebirge","Das Balkangebirge durchzieht Bulgarien."],
+["Wie heißt das Gebirge auf der griechischen Halbinsel Peloponnes?","Taygetos","Der Taygetos ist ein Gebirge auf dem Peloponnes."],
+["Welche Landschaft ist typisch für die Alpen?","Hohe Berge und Täler","Die Alpen besitzen viele hohe Gipfel und Täler."],
+["Was ist ein Gletscher?","Eine große Masse aus langsam fließendem Eis","Gletscher entstehen aus über lange Zeit verdichtetem Schnee."],
+["Wie nennt man einen besonders hohen Berggipfel?","Gipfel","Der Gipfel ist der höchste Punkt eines Berges."],
+["Was ist ein Gebirgspass?","Ein Übergang durch ein Gebirge","Pässe ermöglichen Wege über Berge."],
+["Wie nennt man das Tal zwischen zwei Bergen?","Gebirgstal","Ein Gebirgstal liegt zwischen Bergen oder Berghängen."],
+["Welche Gebirge liegen in Südosteuropa?","Balkan und Karpaten","Beide Gebirge liegen in Südosteuropa."],
+["Warum sind Gebirge oft kälter als tiefer gelegene Gebiete?","Weil die Temperatur mit der Höhe sinkt","Mit zunehmender Höhe wird die Luft meist kälter."]
 ],
-"Meere und Seen Europas":[
-["Welches Meer liegt zwischen Europa und Afrika?",["Ostsee","Mittelmeer","Nordsee"],1,"Das Mittelmeer liegt zwischen Südeuropa und Nordafrika."],
-["Welches Meer liegt nördlich von Deutschland?",["Nordsee","Mittelmeer","Schwarzes Meer"],0,"Die Nordsee liegt nördlich von Deutschland."],
-["Welches Meer liegt östlich von Schweden?",["Ostsee","Rotes Meer","Karibisches Meer"],0,"Die Ostsee liegt östlich von Schweden."],
-["Welcher See liegt zwischen Deutschland, Österreich und der Schweiz?",["Bodensee","Plattensee","Genfersee"],0,"Der Bodensee grenzt an diese drei Länder."]
+
+"Bekannte Flüsse Europas": [
+["Welcher Fluss fließt durch Deutschland und die Niederlande?","Rhein","Der Rhein fließt durch mehrere Länder bis zur Nordsee."],
+["Welcher Fluss ist der längste Europas?","Wolga","Die Wolga fließt durch Russland."],
+["Welcher Fluss fließt durch Paris?","Seine","Die Seine fließt durch die französische Hauptstadt."],
+["Welcher Fluss fließt durch London?","Themse","Die Themse fließt durch London."],
+["Welcher Fluss fließt durch Rom?","Tiber","Der Tiber fließt durch Rom."],
+["Welcher Fluss fließt durch Budapest?","Donau","Die Donau fließt durch Budapest."],
+["Welcher Fluss fließt durch Wien?","Donau","Wien liegt an der Donau."],
+["Welcher Fluss fließt durch Belgrad?","Donau","Die Donau fließt durch Serbiens Hauptstadt."],
+["In welches Meer mündet die Donau?","Schwarzes Meer","Die Donau mündet in das Schwarze Meer."],
+["In welches Meer mündet der Rhein?","Nordsee","Der Rhein mündet in die Nordsee."],
+["Welcher Fluss fließt durch Deutschland und Polen entlang eines Teils der Grenze?","Oder","Die Oder bildet teilweise die deutsch-polnische Grenze."],
+["Welcher Fluss fließt durch Prag?","Moldau","Die Moldau fließt durch die tschechische Hauptstadt."],
+["Wie heißt der Fluss durch Madrid?","Manzanares","Der Manzanares fließt durch Madrid."],
+["Welcher Fluss fließt durch Lissabon?","Tejo","Der Tejo mündet bei Lissabon in den Atlantik."],
+["Welcher Fluss fließt durch Florenz?","Arno","Der Arno fließt durch Florenz."],
+["Welcher Fluss fließt durch Köln?","Rhein","Köln liegt direkt am Rhein."],
+["Welcher Fluss fließt durch Dresden?","Elbe","Die Elbe fließt durch Dresden."],
+["Welcher Fluss fließt durch Hamburg?","Elbe","Hamburg liegt an der Elbe."],
+["Welcher Fluss fließt durch Lyon?","Rhône","Die Rhône fließt durch Lyon."],
+["Welcher Fluss fließt durch Sevilla?","Guadalquivir","Der Guadalquivir fließt durch Sevilla."],
+["Welcher Fluss fließt durch die Ukraine und mündet ins Schwarze Meer?","Dnepr","Der Dnepr ist ein bedeutender Fluss Osteuropas."],
+["Welcher Fluss bildet einen Teil der Grenze zwischen Deutschland und Polen?","Oder","Die Oder ist ein Grenzfluss."],
+["Welcher Fluss fließt durch die Stadt Frankfurt am Main?","Main","Frankfurt liegt am Main."],
+["Welcher Fluss fließt durch Würzburg?","Main","Würzburg liegt am Main."],
+["Welcher Fluss fließt durch Passau?","Donau","Passau liegt am Zusammenfluss von Donau, Inn und Ilz."],
+["Welcher Fluss fließt durch Innsbruck?","Inn","Innsbruck liegt am Inn."],
+["Welcher Fluss fließt durch Sarajevo?","Miljacka","Die Miljacka fließt durch Sarajevo."],
+["Welcher Fluss ist ein Nebenfluss der Donau?","Inn","Der Inn mündet in Passau in die Donau."],
+["Was ist die Mündung eines Flusses?","Die Stelle, an der ein Fluss in ein Gewässer fließt","Ein Fluss endet zum Beispiel in einem Meer oder See."],
+["Wie nennt man den Anfang eines Flusses?","Quelle","Ein Fluss beginnt an seiner Quelle."]
 ],
-"Die Europäische Union":[
-["Wie wird die Europäische Union abgekürzt?",["EU","UNO","NATO"],0,"EU steht für Europäische Union."],
-["Welche Währung nutzen viele EU-Länder?",["Dollar","Euro","Yen"],1,"Viele, aber nicht alle EU-Länder nutzen den Euro."],
-["Was ist ein Ziel der EU?",["Zusammenarbeit in Europa","Alle Länder gleich machen","Ein gemeinsames Schulfach"],0,"Die EU fördert Frieden und Zusammenarbeit."],
-["Gehört Deutschland zur EU?",["Ja","Nein","Nur im Sommer"],0,"Deutschland ist Mitglied der EU."]
+
+"Meere und Seen Europas": [
+["Welches Meer liegt nördlich von Deutschland?","Nordsee","Die Nordsee liegt nordwestlich von Deutschland."],
+["Welches Meer liegt östlich von Deutschland?","Ostsee","Die Ostsee grenzt im Norden und Osten an Deutschland."],
+["Welches Meer liegt zwischen Europa und Afrika?","Mittelmeer","Das Mittelmeer trennt Europa von Afrika."],
+["Welches Meer liegt zwischen Italien und dem Balkan?","Adriatisches Meer","Die Adria ist ein Teil des Mittelmeers."],
+["Welches Meer liegt zwischen Griechenland und der Türkei?","Ägäisches Meer","Die Ägäis liegt zwischen beiden Ländern."],
+["Welches Meer liegt nördlich von Norwegen?","Nordpolarmeer","Norwegens Norden reicht bis zum Nordpolarmeer."],
+["Welches Meer liegt zwischen Großbritannien und Norwegen?","Nordsee","Die Nordsee liegt zwischen diesen Gebieten."],
+["Wie heißt der größte See Europas?","Ladogasee","Der Ladogasee liegt in Russland."],
+["In welchem Land liegt der Bodensee teilweise?","Deutschland","Der Bodensee grenzt an Deutschland, Österreich und die Schweiz."],
+["Welcher See liegt zwischen der Schweiz und Frankreich?","Genfersee","Der Genfersee liegt an der Grenze beider Länder."],
+["Welcher See liegt in Norditalien?","Gardasee","Der Gardasee ist ein bekannter italienischer See."],
+["Wie heißt der größte See in Deutschland?","Müritz","Die Müritz liegt in Mecklenburg-Vorpommern."],
+["Welches Meer liegt westlich von Portugal?","Atlantischer Ozean","Portugal liegt am Atlantik."],
+["Welches Meer liegt zwischen Island und Norwegen?","Norwegische See","Die Norwegische See liegt im Nordatlantik."],
+["Welches Meer liegt östlich von Schweden?","Ostsee","Schweden grenzt an die Ostsee."],
+["Wie heißt das Meer zwischen Spanien und Marokko?","Mittelmeer","Die Straße von Gibraltar verbindet Mittelmeer und Atlantik."],
+["Welcher See liegt in Ungarn?","Balaton","Der Balaton wird auch Plattensee genannt."],
+["Wie heißt das Meer südlich der Ukraine?","Schwarzes Meer","Die Ukraine besitzt eine Küste am Schwarzen Meer."],
+["Welches Meer liegt zwischen Großbritannien und Irland?","Irische See","Die Irische See liegt zwischen den Inseln."],
+["Wie heißt das Meer zwischen Dänemark und Norwegen?","Skagerrak","Das Skagerrak verbindet Nordsee und Kattegat."],
+["Welches Meer liegt südlich der Türkei?","Mittelmeer","Die Südküste der Türkei liegt am Mittelmeer."],
+["Welches Meer liegt östlich von Griechenland?","Ägäisches Meer","Die Ägäis liegt zwischen Griechenland und der Türkei."],
+["Welcher See liegt in Schottland und ist für ein Ungeheuer bekannt?","Loch Ness","Loch Ness ist ein bekannter schottischer See."],
+["Wie nennt man ein Binnengewässer, das von Land umgeben ist?","See","Ein See ist vollständig von Land umgeben."],
+["Wie nennt man das Wasser in einem Meer?","Salzwasser","Meereswasser enthält gelöste Salze."],
+["Wie heißt das Meer nördlich von Polen?","Ostsee","Polen grenzt an die Ostsee."],
+["Welches Meer liegt zwischen Italien und Kroatien?","Adriatisches Meer","Die Adria liegt zwischen beiden Ländern."],
+["Wie heißt der See in der Nähe von Salzburg?","Wolfgangsee","Der Wolfgangsee liegt in Österreich."],
+["Welcher See liegt zwischen Deutschland, Österreich und der Schweiz?","Bodensee","Alle drei Länder grenzen an den Bodensee."],
+["Was ist eine Insel?","Ein vollständig von Wasser umgebenes Landstück","Eine Insel ist von Wasser umgeben."]
 ],
-"Klima und Landschaften Europas":[
-["Wo ist es in Europa oft besonders warm?",["Im Süden","Im Norden","Überall gleich"],0,"Südeuropa hat meist warme Sommer."],
-["Was ist ein Fjord?",["Ein tiefer Meeresarm","Ein Vulkan","Eine Wüste"],0,"Fjorde sind lange Meeresarme zwischen steilen Bergen."],
-["Was ist typisch für das Mittelmeerklima?",["Heiße trockene Sommer","Eisige Sommer","Ganzjährig Schnee"],0,"Am Mittelmeer sind die Sommer meist heiß und trocken."],
-["Welche Landschaft gibt es in Nordeuropa?",["Fjorde","Wüste Sahara","Tropischer Regenwald"],0,"Norwegen ist für seine Fjorde bekannt."]
+
+"Die Europäische Union": [
+["Wie viele Sterne hat die Flagge der EU?","12","Die zwölf Sterne stehen für Einheit und Zusammenhalt."],
+["Wofür steht die Abkürzung EU?","Europäische Union","EU ist die Abkürzung für Europäische Union."],
+["Wo hat die Europäische Kommission ihren Hauptsitz?","Brüssel","Die Kommission arbeitet hauptsächlich in Brüssel."],
+["Welche Währung wird in Deutschland verwendet?","Euro","Deutschland gehört zum Euroraum."],
+["Wie heißt das Parlament der EU?","Europäisches Parlament","Das Europäische Parlament vertritt die Bürger der EU."],
+["Welche Stadt ist ein wichtiger Sitz der EU?","Brüssel","In Brüssel befinden sich wichtige EU-Institutionen."],
+["Was ist ein wichtiges Ziel der EU?","Frieden und Zusammenarbeit","Die EU fördert Zusammenarbeit zwischen europäischen Staaten."],
+["Welches Land gehört zur EU: Norwegen oder Frankreich?","Frankreich","Frankreich ist Mitglied der EU."],
+["Welches Land gehört nicht zur EU: Schweiz oder Italien?","Schweiz","Die Schweiz ist kein EU-Mitglied."],
+["In welchem Jahr wurde die Europäische Union in ihrer heutigen Form gegründet?","1993","Der Vertrag von Maastricht trat 1993 in Kraft."],
+["Wie nennt man die gemeinsame Währung vieler EU-Staaten?","Euro","Der Euro ist die gemeinsame Währung im Euroraum."],
+["Welches EU-Land hat die Hauptstadt Madrid?","Spanien","Madrid ist die Hauptstadt Spaniens."],
+["Welches EU-Land hat die Hauptstadt Warschau?","Polen","Warschau ist die Hauptstadt Polens."],
+["Welches EU-Land hat die Hauptstadt Rom?","Italien","Rom ist die Hauptstadt Italiens."],
+["Welches EU-Land hat die Hauptstadt Athen?","Griechenland","Athen ist die Hauptstadt Griechenlands."],
+["Was bedeutet Reisefreiheit in vielen EU-Ländern?","Man kann Grenzen oft ohne regelmäßige Kontrollen überqueren","Im Schengen-Raum gibt es normalerweise keine Kontrollen an den Binnengrenzen."],
+["Was ist der Binnenmarkt?","Ein gemeinsamer Wirtschaftsraum","Waren, Dienstleistungen, Personen und Kapital können sich freier bewegen."],
+["Wie heißt die Hymne der EU?","Ode an die Freude","Die Melodie stammt aus Beethovens neunter Sinfonie."],
+["Welche Farben hat die EU-Flagge?","Blau und Gelb","Die Flagge zeigt gelbe Sterne auf blauem Hintergrund."],
+["Wie nennt man die gemeinsame Zusammenarbeit europäischer Länder?","Europäische Integration","Die Länder arbeiten in vielen Bereichen zusammen."],
+["Welches Land trat 2004 der EU bei?","Polen","Polen wurde 2004 Mitglied der EU."],
+["Welches Land ist kein Mitglied der EU: Island oder Spanien?","Island","Island ist kein Mitglied der Europäischen Union."],
+["Was wählen die Bürger der EU alle fünf Jahre?","Das Europäische Parlament","Die Bürger wählen die Abgeordneten des EU-Parlaments."],
+["Was ist eine Aufgabe der Europäischen Kommission?","Sie schlägt neue EU-Gesetze vor","Die Kommission hat unter anderem das Initiativrecht."],
+["Was ist eine Aufgabe des Europäischen Gerichtshofs?","EU-Recht auslegen","Der Gerichtshof achtet auf die einheitliche Anwendung des EU-Rechts."],
+["Welches Land hat die Hauptstadt Helsinki?","Finnland","Finnland ist Mitglied der Europäischen Union."],
+["Welches Land hat die Hauptstadt Dublin?","Irland","Irland gehört zur EU."],
+["Welches Land hat die Hauptstadt Lissabon?","Portugal","Portugal ist ein Mitglied der EU."],
+["Welches Land hat die Hauptstadt Ljubljana?","Slowenien","Slowenien ist Mitglied der EU."],
+["Welches Land hat die Hauptstadt Tallinn?","Estland","Estland gehört zur EU."]
 ],
-"Karten und Orientierung":[
-["Was liegt gegenüber von Norden?",["Osten","Süden","Westen"],1,"Süden liegt gegenüber von Norden."],
-["Was zeigt der Kartenmaßstab?",["Entfernungen verkleinert","Das Wetter","Die Einwohnerzahl"],0,"Der Maßstab zeigt verkleinerte Entfernungen."],
-["In welcher Richtung liegt Spanien von Deutschland aus?",["Südwesten","Nordosten","Osten"],0,"Spanien liegt von Deutschland aus im Südwesten."],
-["Welche Himmelsrichtung liegt rechts auf einer normalen Karte?",["Westen","Osten","Norden"],1,"Auf einer normalen Karte ist Osten rechts."]
+
+"Klima und Landschaften Europas": [
+["Wie nennt man das Klima im Mittelmeerraum?","Mittelmeerklima","Es gibt heiße, trockene Sommer und milde, feuchte Winter."],
+["Welche Landschaft ist typisch für die Alpen?","Hochgebirge","Die Alpen haben hohe Gipfel und tiefe Täler."],
+["Wie nennt man eine große baumlose Landschaft im hohen Norden?","Tundra","In der Tundra wachsen vor allem Moose, Flechten und kleine Sträucher."],
+["Was ist eine Steppe?","Eine trockene Graslandschaft","In Steppen wachsen vor allem Gräser."],
+["Welches Klima herrscht in Nordeuropa häufig?","Kühles Klima","In vielen nördlichen Regionen sind die Winter lang und kalt."],
+["Was ist ein Fjord?","Ein tiefes, vom Meer gefülltes Gletschertal","Fjorde sind besonders typisch für Norwegen."],
+["Warum sind die Sommer am Mittelmeer oft trocken?","Weil es dort im Sommer wenig regnet","Das Mittelmeerklima hat trockene Sommer."],
+["Was ist eine Küstenlandschaft?","Eine Landschaft am Meer","Küsten liegen am Übergang von Land und Meer."],
+["Wie nennt man eine flache Landschaft ohne große Höhenunterschiede?","Ebene","Eine Ebene ist weitgehend flach."],
+["Was ist ein Gletscher?","Eine langsam fließende Eismasse","Gletscher entstehen aus verdichtetem Schnee."],
+["Welche Landschaft findet man häufig in den Niederlanden?","Flaches Tiefland","Große Teile der Niederlande sind sehr flach."],
+["Was ist ein Hochgebirge?","Ein Gebirge mit sehr hohen Bergen","Hochgebirge besitzen hohe Gipfel und oft Schnee."],
+["Was bedeutet Niederschlag?","Wasser, das aus der Atmosphäre auf die Erde fällt","Regen, Schnee und Hagel sind Niederschläge."],
+["Was ist das Wetter?","Der aktuelle Zustand der Atmosphäre","Zum Wetter gehören Temperatur, Wind und Niederschlag."],
+["Was ist das Klima?","Das typische Wetter einer Region über lange Zeit","Klima wird über viele Jahre betrachtet."],
+["Welche Jahreszeit ist auf der Nordhalbkugel im Dezember?","Winter","Im Dezember beginnt auf der Nordhalbkugel der Winter."],
+["Warum ist es auf hohen Bergen kälter?","Die Temperatur nimmt mit der Höhe ab","Die Luft ist in größeren Höhen meist kälter."],
+["Welche Landschaft ist typisch für Island?","Vulkane und Gletscher","Island besitzt viele Vulkane und große Eisflächen."],
+["Was ist eine Halbinsel?","Ein Landstück, das auf drei Seiten von Wasser umgeben ist","Eine Halbinsel ist nur an einer Seite mit dem Festland verbunden."],
+["Was ist eine Inselgruppe?","Mehrere Inseln in einem Gebiet","Eine Inselgruppe besteht aus mehreren Inseln."],
+["Welche Landschaft prägt große Teile Skandinaviens?","Wälder, Seen und Gebirge","Skandinavien besitzt viele Wälder, Seen und Gebirgszüge."],
+["Was ist eine Dürre?","Eine lange Zeit mit sehr wenig Niederschlag","Bei einer Dürre fehlt Wasser."],
+["Was ist ein Tornado?","Ein sehr starker, rotierender Luftwirbel","Tornados können große Schäden verursachen."],
+["Was ist ein Hochdruckgebiet?","Ein Gebiet mit höherem Luftdruck","Hochdruck bringt häufig ruhiges Wetter."],
+["Was ist ein Tiefdruckgebiet?","Ein Gebiet mit niedrigerem Luftdruck","Tiefdruck ist oft mit Wolken und Niederschlag verbunden."],
+["Welche Landschaft ist typisch für Südspanien?","Trockene Landschaften","In Südspanien gibt es heiße, trockene Sommer."],
+["Was ist eine Waldlandschaft?","Eine Landschaft mit vielen Bäumen","Wälder bestehen aus zahlreichen Bäumen und anderen Pflanzen."],
+["Wie nennt man den Übergang zwischen Land und Meer?","Küste","Die Küste ist die Grenze zwischen Land und Meer."],
+["Warum wachsen in der Tundra nur wenige große Bäume?","Weil es dort sehr kalt ist","Die Vegetationszeit ist kurz und der Boden oft gefroren."],
+["Was beeinflusst das Klima einer Region?","Breitengrad, Höhe und Entfernung zum Meer","Mehrere geografische Faktoren beeinflussen das Klima."]
+],
+
+"Karten und Orientierung": [
+["In welche Richtung zeigt oben auf den meisten Karten?","Norden","Auf den meisten Karten liegt Norden oben."],
+["In welche Richtung zeigt rechts auf einer normalen Karte?","Osten","Wenn Norden oben ist, liegt Osten rechts."],
+["In welche Richtung zeigt links auf einer normalen Karte?","Westen","Wenn Norden oben ist, liegt Westen links."],
+["In welche Richtung zeigt unten auf einer normalen Karte?","Süden","Süden liegt auf normalen Karten unten."],
+["Wie heißt das Gerät zur Bestimmung der Himmelsrichtung?","Kompass","Ein Kompass zeigt die Richtung an."],
+["Wie nennt man die Erklärung der Zeichen auf einer Karte?","Legende","Die Legende erklärt die Kartensymbole."],
+["Was zeigt der Maßstab einer Karte?","Das Verhältnis zwischen Kartenstrecke und Wirklichkeit","Der Maßstab hilft beim Berechnen echter Entfernungen."],
+["Was bedeutet der Maßstab 1:100.000?","1 cm auf der Karte entspricht 1 km in Wirklichkeit","100.000 cm sind 1 km."],
+["Wie nennt man Linien gleicher Höhe auf einer Karte?","Höhenlinien","Höhenlinien verbinden Punkte gleicher Höhe."],
+["Was zeigt eine politische Karte?","Grenzen und Länder","Politische Karten zeigen Staaten und Grenzen."],
+["Was zeigt eine physische Karte?","Gebirge, Flüsse und Landschaften","Physische Karten zeigen natürliche Merkmale."],
+["Wie nennt man eine Zeichnung der Erdoberfläche?","Karte","Eine Karte stellt die Erdoberfläche verkleinert dar."],
+["Was ist ein Atlas?","Eine Sammlung von Karten","Ein Atlas enthält viele verschiedene Karten."],
+["Was ist ein Globus?","Ein Modell der Erde","Ein Globus stellt die Erde kugelförmig dar."],
+["Wie heißt die gedachte Linie um die Mitte der Erde?","Äquator","Der Äquator teilt die Erde in Nord- und Südhalbkugel."],
+["Wie nennt man die Linien von Pol zu Pol?","Längenkreise","Längenkreise verlaufen vom Nordpol zum Südpol."],
+["Wie nennt man die Linien parallel zum Äquator?","Breitenkreise","Breitenkreise verlaufen parallel zum Äquator."],
+["Wie heißt der Nullmeridian?","Greenwich-Meridian","Der Nullmeridian verläuft durch Greenwich."],
+["Wie viele Himmelsrichtungen gibt es in der einfachen Einteilung?","4","Die vier Haupthimmelsrichtungen sind Nord, Ost, Süd und West."],
+["Welche Richtung liegt zwischen Norden und Osten?","Nordosten","Nordosten liegt zwischen Nord und Ost."],
+["Welche Richtung liegt zwischen Süden und Westen?","Südwesten","Südwesten liegt zwischen Süd und West."],
+["Was bedeutet GPS?","Global Positioning System","GPS ist ein satellitengestütztes Navigationssystem."],
+["Wofür verwendet man Koordinaten?","Um Orte genau zu bestimmen","Koordinaten beschreiben eine genaue Position."],
+["Was ist eine Höhenangabe?","Die Höhe eines Ortes über einem Bezugspunkt","Höhen werden häufig in Metern angegeben."],
+["Wie heißt die Darstellung der Erdoberfläche auf einer Karte?","Kartenprojektion","Eine Kartenprojektion überträgt die Kugeloberfläche auf eine Ebene."],
+["Was bedeutet der Begriff Kontinent?","Ein großer zusammenhängender Erdteil","Europa ist ein Kontinent."],
+["Welcher Kontinent liegt südlich von Europa?","Afrika","Afrika liegt südlich von Europa."],
+["Welcher Kontinent liegt östlich von Europa?","Asien","Europa und Asien bilden zusammen Eurasien."],
+["Was ist eine Stadtkarte?","Eine Karte mit Straßen und Orten einer Stadt","Stadtkarten helfen bei der Orientierung in Städten."],
+["Was zeigt ein Höhenprofil?","Die Höhenunterschiede entlang einer Strecke","Ein Höhenprofil zeigt Anstiege und Gefälle."]
 ]
 }
 };
 
-// Jedes Thema auf 30 Aufgabenplätze erweitern.
-// Vorhandene Aufgaben werden als zusätzliche Übungsvarianten wiederholt.
-Object.keys(bank).forEach(fach=>{
-  Object.keys(bank[fach]).forEach(thema=>{
-    const original=bank[fach][thema];
-    const erweitert=[];
-    for(let i=0;i<30;i++){
-      const basis=original[i%original.length];
-      erweitert.push([
-        basis[0],
-        basis[1].slice(),
-        basis[2],
-        basis[3]
-      ]);
-    }
-    bank[fach][thema]=erweitert;
-  });
-});
+const subjectSelect = document.getElementById("subject");
+const topicSelect = document.getElementById("topic");
 
-let subject="",topic="",questions=[],index=0;
-let score=0,right=0,wrong=0;
+let questions = [];
+let current = 0;
+let points = 0;
+let right = 0;
+let wrong = 0;
+let answered = false;
 
-const el=id=>document.getElementById(id);
-
-function stats(){
-  el("p").textContent=score;
-  el("r").textContent=right;
-  el("w").textContent=wrong;
+function shuffle(array) {
+  const copy = [...array];
+  for (let i = copy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [copy[i], copy[j]] = [copy[j], copy[i]];
+  }
+  return copy;
 }
 
-function showSubjects(){
-  el("subjects").innerHTML="";
-  Object.keys(bank).forEach(name=>{
-    const b=document.createElement("button");
-    b.textContent=name;
-    b.onclick=()=>{
-      subject=name;
-      el("subjects").querySelectorAll("button").forEach(x=>x.classList.remove("sel"));
-      b.classList.add("sel");
-      showTopics();
-    };
-    el("subjects").appendChild(b);
+function fillSubjects() {
+  subjectSelect.innerHTML = "";
+  Object.keys(bank).forEach(subject => {
+    const option = document.createElement("option");
+    option.value = subject;
+    option.textContent = subject;
+    subjectSelect.appendChild(option);
+  });
+  fillTopics();
+}
+
+function fillTopics() {
+  const subject = subjectSelect.value;
+  topicSelect.innerHTML = "";
+  Object.keys(bank[subject]).forEach(topic => {
+    const option = document.createElement("option");
+    option.value = topic;
+    option.textContent = topic;
+    topicSelect.appendChild(option);
   });
 }
 
-function showTopics(){
-  el("topics").innerHTML="";
-  el("hint").textContent="Wähle ein Thema für "+subject+".";
-  Object.keys(bank[subject]).forEach(name=>{
-    const b=document.createElement("button");
-    b.textContent=name+" (30 Aufgaben)";
-    b.onclick=()=>{
-      topic=name;
-      el("topics").querySelectorAll("button").forEach(x=>x.classList.remove("sel"));
-      b.classList.add("sel");
-      start();
-    };
-    el("topics").appendChild(b);
-  });
-}
+subjectSelect.addEventListener("change", fillTopics);
 
-function start(){
-  questions=bank[subject][topic].slice();
-  // Reihenfolge der Aufgaben mischen
-  questions.sort(()=>Math.random()-.5);
-  index=0;
-  el("selected").textContent=subject+" – "+topic;
-  el("again").classList.add("hide");
+function startQuiz() {
+  const subject = subjectSelect.value;
+  const topic = topicSelect.value;
+
+  questions = shuffle(bank[subject][topic]).slice(0, 30);
+  current = 0;
+  points = 0;
+  right = 0;
+  wrong = 0;
+
+  document.getElementById("start").style.display = "none";
+  document.getElementById("quiz").style.display = "block";
+
+  updateStats();
   showQuestion();
 }
 
-function showQuestion(){
-  el("feedback").innerHTML="";
-  el("next").classList.add("hide");
-  const q=questions[index];
-  el("progress").textContent="Aufgabe "+(index+1)+" von "+questions.length;
-  el("q").textContent=q[0];
-  el("answers").innerHTML="";
+function updateStats() {
+  document.getElementById("points").textContent = points;
+  document.getElementById("right").textContent = right;
+  document.getElementById("wrong").textContent = wrong;
+}
 
-  // Antwortmöglichkeiten mischen und richtige Antwort merken
-  const answers=q[1].map((text,i)=>({
-    text,
-    correct:i===q[2]
-  }));
-  answers.sort(()=>Math.random()-.5);
+function showQuestion() {
+  answered = false;
 
-  answers.forEach(answer=>{
-    const b=document.createElement("button");
-    b.textContent=answer.text;
-    b.onclick=()=>checkAnswer(answer.correct);
-    el("answers").appendChild(b);
+  if (current >= questions.length) {
+    showEnd();
+    return;
+  }
+
+  const q = questions[current];
+  document.getElementById("counter").textContent =
+    "Frage " + (current + 1) + " von " + questions.length;
+
+  document.getElementById("question").textContent = q[0];
+  document.getElementById("feedback").style.display = "none";
+  document.getElementById("next").disabled = true;
+  document.getElementById("next").textContent = "Weiter";
+
+  document.getElementById("bar").style.width =
+    (current / questions.length * 100) + "%";
+
+  const answers = makeAnswers(q);
+  const container = document.getElementById("answers");
+  container.innerHTML = "";
+
+  answers.forEach(answer => {
+    const button = document.createElement("button");
+    button.className = "answer";
+    button.textContent = answer;
+    button.addEventListener("click", () => checkAnswer(answer, button));
+    container.appendChild(button);
   });
 }
 
-function checkAnswer(correct){
-  const buttons=el("answers").querySelectorAll("button");
-  buttons.forEach(b=>b.disabled=true);
+function makeAnswers(question) {
+  const correctAnswer = question[1];
 
-  if(correct){
-    score+=10;
-    right++;
-    el("feedback").innerHTML='<div class="good"><b>✅ Richtig! +10 Punkte</b></div>';
-  }else{
-    wrong++;
-    el("feedback").innerHTML='<div class="bad"><b>❌ Leider falsch!</b></div>';
-  }
+  const allAnswers = questions
+    .map(q => q[1])
+    .filter(answer => answer !== correctAnswer);
 
-  const q=questions[index];
-  const explanation=document.createElement("p");
-  explanation.textContent="Erklärung: "+q[3];
-  el("feedback").appendChild(explanation);
+  const uniqueWrong = [...new Set(allAnswers)];
+  const choices = shuffle(uniqueWrong).slice(0, 3);
+  choices.push(correctAnswer);
 
-  if(!correct){
-    const correctAnswer=document.createElement("p");
-    correctAnswer.textContent="Richtige Antwort: "+q[1][q[2]];
-    el("feedback").appendChild(correctAnswer);
-  }
-
-  stats();
-  el("next").classList.remove("hide");
-  el("next").textContent=index===questions.length-1
-    ?"Ergebnis anzeigen"
-    :"Nächste Aufgabe ➜";
+  return shuffle(choices);
 }
 
-el("next").onclick=()=>{
-  index++;
-  if(index<questions.length){
-    showQuestion();
-  }else{
-    el("q").textContent="🎉 Geschafft! Du hast das Thema beendet!";
-    el("progress").textContent=
-      "Deine Punkte: "+score+
-      " | Insgesamt richtig: "+right+
-      " | Falsch: "+wrong;
-    el("answers").innerHTML="";
-    el("feedback").innerHTML="";
-    el("next").classList.add("hide");
-    el("again").classList.remove("hide");
+function checkAnswer(answer, clickedButton) {
+  if (answered) return;
+  answered = true;
+
+  const q = questions[current];
+  const feedback = document.getElementById("feedback");
+  const buttons = document.querySelectorAll(".answer");
+
+  buttons.forEach(button => {
+    button.disabled = true;
+    if (button.textContent === q[1]) {
+      button.classList.add("correct");
+    }
+  });
+
+  if (answer === q[1]) {
+    right++;
+    points += 10;
+    feedback.style.background = "#dcfce7";
+    feedback.innerHTML = "✅ <strong>Richtig!</strong> Sehr gut! Du bekommst 10 Punkte.";
+  } else {
+    wrong++;
+    clickedButton.classList.add("wrong");
+    feedback.style.background = "#fee2e2";
+    feedback.innerHTML =
+      "❌ <strong>Leider falsch!</strong><br>" +
+      "Richtige Antwort: <strong>" + q[1] + "</strong><br>" +
+      "Erklärung: " + q[2];
   }
-};
 
-el("again").onclick=start;
+  feedback.style.display = "block";
+  document.getElementById("next").disabled = false;
+  document.getElementById("next").textContent =
+    current === questions.length - 1 ? "Ergebnis ansehen" : "Nächste Frage";
 
-showSubjects();
-stats();
+  updateStats();
+}
+
+function nextQuestion() {
+  if (!answered) return;
+  current++;
+  showQuestion();
+}
+
+function showEnd() {
+  document.getElementById("question").textContent = "🎉 Thema geschafft!";
+  document.getElementById("answers").innerHTML = "";
+
+  document.getElementById("counter").textContent = "Alle Fragen beantwortet!";
+  document.getElementById("bar").style.width = "100%";
+
+  const feedback = document.getElementById("feedback");
+  feedback.style.display = "block";
+  feedback.style.background = "#e0eaff";
+
+  const percentage = Math.round((right / questions.length) * 100);
+
+  feedback.innerHTML =
+    "<h3>Dein Ergebnis</h3>" +
+    "<p>⭐ Punkte: <strong>" + points + "</strong></p>" +
+    "<p>✅ Richtige Antworten: <strong>" + right + "</strong></p>" +
+    "<p>❌ Falsche Antworten: <strong>" + wrong + "</strong></p>" +
+    "<p>📊 Richtig beantwortet: <strong>" + percentage + "%</strong></p>" +
+    "<p>" + getMessage(percentage) + "</p>";
+
+  document.getElementById("next").textContent = "Noch einmal spielen";
+  document.getElementById("next").disabled = false;
+  document.getElementById("next").onclick = restartQuiz;
+}
+
+function getMessage(percentage) {
+  if (percentage === 100) return "Perfekt! Du hast alle Fragen richtig beantwortet! 🏆";
+  if (percentage >= 80) return "Super gemacht! Du kennst dich richtig gut aus! 🌟";
+  if (percentage >= 60) return "Gut gemacht! Mit etwas Übung wirst du noch besser!";
+  if (percentage >= 40) return "Du bist auf einem guten Weg. Übe das Thema noch einmal!";
+  return "Nicht aufgeben! Lies die Erklärungen und probiere es noch einmal.";
+}
+
+function restartQuiz() {
+  document.getElementById("next").onclick = nextQuestion;
+  startQuiz();
+}
+
+function backToMenu() {
+  document.getElementById("quiz").style.display = "none";
+  document.getElementById("start").style.display = "block";
+  document.getElementById("next").onclick = nextQuestion;
+}
+
+fillSubjects();
 </script>
 </body>
 </html>
+
+
 
 
 
